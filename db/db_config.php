@@ -7,6 +7,6 @@ $database = "unibo_mobility";
 $conn = mysqli_connect($host, $user, $password, $database);
 
 if (!$conn) {
-    die("Connessione fallita: " . mysqli_connect_error());
+    die("Connection failed: " . mysqli_connect_error());
 }
 ?>

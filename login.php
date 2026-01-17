@@ -1,0 +1,94 @@
+<?php
+/** @var mysqli $conn */
+include 'db/db_config.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$errors = [];
+function sanitize_redirect(string $redirect): string
+{
+    if (preg_match('/^https?:/i', $redirect)) {
+        return 'index.php';
+    }
+    if (strpos($redirect, '//') === 0) {
+        return 'index.php';
+    }
+    return $redirect === '' ? 'index.php' : $redirect;
+}
+
+$redirect = sanitize_redirect(isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $redirect = sanitize_redirect(trim($_POST['redirect'] ?? 'index.php'));
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Invalid email.';
+    }
+    if ($password === '') {
+        $errors[] = 'Enter your password.';
+    }
+
+    if (!$errors) {
+        $stmt = mysqli_prepare($conn, "SELECT id, name, password_hash, role FROM users WHERE email = ?");
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $user = $result ? mysqli_fetch_assoc($result) : null;
+        mysqli_stmt_close($stmt);
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            $role = strtolower(trim((string) $user['role']));
+            if ($role !== 'admin') {
+                $role = 'user';
+            }
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_role'] = $role;
+            if ($redirect === 'index.php' && $role === 'admin') {
+                $redirect = 'admin.php';
+            }
+            if ($redirect === 'admin.php' && $role !== 'admin') {
+                $redirect = 'index.php';
+            }
+            header("Location: {$redirect}");
+            exit;
+        }
+        $errors[] = 'Invalid credentials.';
+    }
+}
+
+include 'header.php';
+?>
+
+<div class="container py-5" style="max-width: 520px;">
+    <h1 class="fw-bold mb-4">Login</h1>
+    <div class="form-section p-4 shadow-sm">
+        <?php if ($errors): ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $error): ?>
+                    <div><?php echo htmlspecialchars($error); ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" novalidate>
+            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-unibo w-100">Sign in</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0">Don't have an account? <a href="register.php">Sign up</a></p>
+    </div>
+</div>
+
+<?php include 'footer.php'; ?>

@@ -1,6 +1,107 @@
 <?php
 /** @var mysqli $conn */
 include 'db/db_config.php';
+include 'auth.php';
+
+$isAdmin = is_admin();
+
+$allowedStatuses = ['all', 'available'];
+$filterStatus = $_GET['status'] ?? 'all';
+if (!in_array($filterStatus, $allowedStatuses, true)) {
+    $filterStatus = 'all';
+}
+
+$autoImageMarkers = [
+    'placehold.co',
+    'images.unsplash.com/photo-1518655048521-f130df041f66',
+    'images.unsplash.com/photo-1508975553364-7be68795f3d7',
+    'images.unsplash.com/photo-1529156069898-49953e39b3ac',
+    'images.unsplash.com/photo-1503376780353-7e6692767b70',
+    'images.unsplash.com/photo-1485965120184-e220f721d03e',
+    'images.unsplash.com/photo-1500530855697-b586d89ba3ee'
+];
+
+function is_auto_image(string $url, array $markers): bool
+{
+    $lowerUrl = strtolower($url);
+    foreach ($markers as $marker) {
+        if (strpos($lowerUrl, strtolower($marker)) !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function status_label(string $status): string
+{
+    $status = strtolower(trim($status));
+    if ($status === 'available') {
+        return 'Available';
+    }
+    if ($status === 'rented') {
+        return 'Rented';
+    }
+    if ($status === 'maintenance') {
+        return 'Maintenance';
+    }
+    if ($status === 'broken') {
+        return 'Broken';
+    }
+    return ucfirst($status);
+}
+
+function status_badge_class(string $status): string
+{
+    $status = strtolower(trim($status));
+    if ($status === 'available') {
+        return 'bg-success';
+    }
+    if ($status === 'rented') {
+        return 'bg-warning text-dark';
+    }
+    if ($status === 'maintenance') {
+        return 'bg-secondary';
+    }
+    if ($status === 'broken') {
+        return 'bg-danger';
+    }
+    return 'bg-light text-dark border';
+}
+
+function type_label(string $type): string
+{
+    $type = strtolower(trim($type));
+    if ($type === 'bike') {
+        return 'Bike';
+    }
+    if ($type === 'scooter') {
+        return 'Scooter';
+    }
+    return ucfirst($type);
+}
+
+$query = "SELECT * FROM vehicles";
+$params = [];
+$types = '';
+
+if ($filterStatus === 'available') {
+    $query .= " WHERE status = ?";
+    $params[] = 'available';
+    $types .= 's';
+}
+$query .= " ORDER BY id DESC";
+
+$stmt = mysqli_prepare($conn, $query);
+if ($stmt && $params) {
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
+}
+if ($stmt) {
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+} else {
+    $result = false;
+}
+
 include 'header.php';
 ?>
 
@@ -9,77 +110,90 @@ include 'header.php';
             <h1 class="display-5 fw-bold mb-3">Find Your Ride</h1>
             <p class="lead opacity-90">Sustainable campus transportation made easy</p>
 
-            <div class="bg-white p-4 rounded-4 shadow-lg text-dark mx-auto mt-5" style="max-width: 800px;">
-                <div class="row g-3">
-                    <div class="col-md-6 text-start">
-                        <label class="form-label small fw-bold">Vehicle Type</label>
-                        <select class="form-select border-2">
-                            <option>All Vehicles</option>
-                            <option>Bike</option>
-                            <option>E-Scooter</option>
+            <div class="bg-white p-4 rounded-4 shadow-lg text-dark mx-auto mt-5" style="max-width: 520px;">
+                <form class="row g-3" method="get" id="filters">
+                    <div class="col-12 text-start">
+                        <label class="form-label small fw-bold">Status</label>
+                        <select class="form-select border-2" name="status">
+                            <option value="all" <?php echo $filterStatus === 'all' ? 'selected' : ''; ?>>All vehicles</option>
+                            <option value="available" <?php echo $filterStatus === 'available' ? 'selected' : ''; ?>>Available</option>
                         </select>
                     </div>
-                    <div class="col-md-6 text-start">
-                        <label class="form-label small fw-bold">Availability</label>
-                        <select class="form-select border-2">
-                            <option>All</option>
-                            <option>Available</option>
-                            <option>Busy</option>
-                        </select>
+                    <div class="col-12 text-end">
+                        <button class="btn btn-unibo" type="submit">Apply filter</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </section>
 
     <section class="py-5">
         <div class="container">
-            <h2 class="fw-bold mb-4">Available Vehicles</h2>
+            <h2 class="fw-bold mb-4">Vehicles</h2>
             <div class="row row-cols-1 row-cols-md-3 g-4">
 
                 <?php
-                $query = "SELECT * FROM mezzi";
-                $result = mysqli_query($conn, $query);
-
-                if (mysqli_num_rows($result) > 0) {
+                if ($result && mysqli_num_rows($result) > 0) {
                     while ($row = mysqli_fetch_assoc($result)) {
-                        $batt = $row['batteria'];
-                        $battColor = "bg-success";
-                        if ($batt < 20) $battColor = "bg-danger";
-                        elseif ($batt < 50) $battColor = "bg-warning";
+                        $battery = (int) $row['battery'];
+                        $batteryColor = 'bg-success';
+                        if ($battery < 20) {
+                            $batteryColor = 'bg-danger';
+                        } elseif ($battery < 50) {
+                            $batteryColor = 'bg-warning';
+                        }
+
+                        $statusLabel = status_label($row['status']);
+                        $badgeClass = status_badge_class($row['status']);
+                        $isAvailable = strtolower(trim($row['status'])) === 'available';
+                        $imageUrl = trim((string) ($row['image_url'] ?? ''));
+                        $showImage = $imageUrl !== '' && !is_auto_image($imageUrl, $autoImageMarkers);
                         ?>
                         <div class="col">
                             <div class="unibo-card h-100 overflow-hidden shadow-sm border-0">
                                 <div class="position-relative">
-                                    <img src="<?php echo (!empty($row['immagine'])) ? $row['immagine'] : 'https://placehold.co/600x400?text=No+Image'; ?>" class="card-img-top" alt="Mezzo" style="height: 200px; object-fit: cover;">
-                                    <span class="position-absolute top-0 end-0 m-3 badge bg-success rounded-pill px-3">
-                                    <?php echo $row['stato']; ?>
+                                    <?php if ($showImage): ?>
+                                        <img src="<?php echo htmlspecialchars($imageUrl); ?>" class="card-img-top" alt="Vehicle" style="height: 200px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <div class="image-placeholder d-flex align-items-center justify-content-center">
+                                            <div class="text-muted small">No image</div>
+                                        </div>
+                                    <?php endif; ?>
+                                    <span class="position-absolute top-0 end-0 m-3 badge <?php echo $badgeClass; ?> rounded-pill px-3">
+                                    <?php echo htmlspecialchars($statusLabel); ?>
                                 </span>
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between">
-                                        <h5 class="fw-bold text-dark"><?php echo $row['nome']; ?></h5>
-                                        <span class="h4 fw-bold text-danger">€<?php echo $row['prezzo_ora']; ?></span>
+                                        <h5 class="fw-bold text-dark"><?php echo htmlspecialchars($row['name']); ?></h5>
+                                        <span class="h4 fw-bold text-danger">EUR <?php echo htmlspecialchars((string) $row['hourly_price']); ?></span>
                                     </div>
-                                    <p class="text-muted small"><?php echo $row['posizione']; ?></p>
+                                    <p class="text-muted small mb-1"><?php echo htmlspecialchars($row['location']); ?></p>
+                                    <p class="text-muted small">Type: <?php echo htmlspecialchars(type_label($row['type'])); ?></p>
 
                                     <div class="my-3 text-dark">
                                         <div class="d-flex justify-content-between small mb-1">
                                             <span>Battery</span>
-                                            <span><?php echo $row['batteria']; ?>%</span>
+                                            <span><?php echo htmlspecialchars((string) $battery); ?>%</span>
                                         </div>
                                         <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar <?php echo $battColor; ?>" style="width: <?php echo $row['batteria']; ?>%"></div>
+                                            <div class="progress-bar <?php echo $batteryColor; ?>" style="width: <?php echo htmlspecialchars((string) $battery); ?>%"></div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-unibo w-100 mt-2">Reserve Now</button>
+                                    <?php if ($isAdmin): ?>
+                                        <button class="btn btn-outline-secondary w-100 mt-2" disabled>Admins cannot book</button>
+                                    <?php elseif ($isAvailable): ?>
+                                        <a href="booking.php?vehicle_id=<?php echo $row['id']; ?>" class="btn btn-unibo w-100 mt-2">Reserve Now</a>
+                                    <?php else: ?>
+                                        <button class="btn btn-outline-secondary w-100 mt-2" disabled>Unavailable</button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                         <?php
-                    } // <-- QUESTA MANCAVA: Chiude il ciclo While
+                    }
                 } else {
-                    echo "<div class='col-12'><p class='text-center'>Nessun mezzo trovato nel database.</p></div>";
+                    echo "<div class='col-12'><p class='text-center'>No vehicles found.</p></div>";
                 }
                 ?>
 
@@ -103,7 +217,7 @@ include 'header.php';
                                 <div class="bg-white p-3 rounded-circle shadow-sm text-danger"><i class="fas fa-map-pin"></i></div>
                                 <div>
                                     <h6 class="fw-bold mb-0">Main Campus</h6>
-                                    <small class="text-muted">Via Zamboni 33</small>
+                                    <small class="text-muted">Main Campus Gate</small>
                                 </div>
                             </div>
                         </div>
@@ -112,5 +226,21 @@ include 'header.php';
             </div>
         </div>
     </section>
+
+<script>
+(function () {
+    var form = document.getElementById('filters');
+    if (!form) {
+        return;
+    }
+    var select = form.querySelector('select');
+    if (!select) {
+        return;
+    }
+    select.addEventListener('change', function () {
+        form.submit();
+    });
+})();
+</script>
 
 <?php include 'footer.php'; ?>

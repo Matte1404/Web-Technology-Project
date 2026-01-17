@@ -1,0 +1,96 @@
+<?php
+/** @var mysqli $conn */
+include 'db/db_config.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm = $_POST['confirm'] ?? '';
+
+    if ($name === '') {
+        $errors[] = 'Enter your name.';
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Invalid email.';
+    }
+    if (strlen($password) < 6) {
+        $errors[] = 'Password must be at least 6 characters.';
+    }
+    if ($password !== $confirm) {
+        $errors[] = 'Passwords do not match.';
+    }
+
+    if (!$errors) {
+        $stmt = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ?");
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $exists = $result && mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+
+        if ($exists) {
+            $errors[] = 'Email already registered.';
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'user')");
+            mysqli_stmt_bind_param($stmt, "sss", $name, $email, $hash);
+            $success = mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+
+            if ($success) {
+                $_SESSION['user_id'] = mysqli_insert_id($conn);
+                $_SESSION['user_name'] = $name;
+                $_SESSION['user_role'] = 'user';
+                header('Location: profile.php');
+                exit;
+            }
+            $errors[] = 'Registration failed.';
+        }
+    }
+}
+
+include 'header.php';
+?>
+
+<div class="container py-5" style="max-width: 520px;">
+    <h1 class="fw-bold mb-4">Sign up</h1>
+    <div class="form-section p-4 shadow-sm">
+        <?php if ($errors): ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $error): ?>
+                    <div><?php echo htmlspecialchars($error); ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" novalidate>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Confirm password</label>
+                <input type="password" name="confirm" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-unibo w-100">Create account</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0">Already have an account? <a href="login.php">Sign in</a></p>
+    </div>
+</div>
+
+<?php include 'footer.php'; ?>
