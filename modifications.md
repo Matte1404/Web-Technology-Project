@@ -13,6 +13,7 @@ Added
 Updated
 - `header.php`: session-aware navigation and corrected CSS paths.
 - `admin.php`: full CRUD for vehicles, status filter, and change logging.
+- `admin.php`: delete vehicles with dependent rentals/issues and add a bulk delete action.
 - `index.php`: user filter is All/Available only, admin booking disabled, and English-only identifiers.
 - `profile.php`: admin change log view and user rental history using English table/column names.
 - `auth.php`: case-insensitive admin checks and redirect for unauthorized access.
@@ -22,5 +23,5 @@ Updated
 - `booking.php`: admin booking block and English table/column names.
 - `CSS/style.css`: added placeholder style for missing images.
 - `db/db_config.php`: English connection error message.
-- `db/schema.sql`: drops all existing tables in the database and recreates English-only schema.
+- `db/schema.sql`: drops all existing tables in the database and recreates English-only schema with cascading deletes for vehicle-related data.
 - `header.php`, `footer.php`, `index.php`, `login.php`, `register.php`, `booking.php`, `profile.php`, `seed.php`, `admin.php`: UI copy translated to English.

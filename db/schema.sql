@@ -39,7 +39,7 @@ CREATE TABLE rentals (
     minutes INT DEFAULT NULL,
     total_cost DECIMAL(8, 2) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
 );
 
 CREATE TABLE issues (
@@ -51,8 +51,8 @@ CREATE TABLE issues (
     status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id),
-    FOREIGN KEY (rental_id) REFERENCES rentals(id)
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE,
+    FOREIGN KEY (rental_id) REFERENCES rentals(id) ON DELETE CASCADE
 );
 
 CREATE TABLE change_log (

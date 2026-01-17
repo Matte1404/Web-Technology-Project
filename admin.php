@@ -93,19 +93,106 @@ if (isset($_GET['delete'])) {
         $vehicleName = $row['name'] ?? null;
         mysqli_stmt_close($stmt);
     }
-    $stmt = mysqli_prepare($conn, "DELETE FROM vehicles WHERE id = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
-    $details = $vehicleName ? "Deleted vehicle {$vehicleName}." : "Deleted vehicle #{$id}.";
-    log_change($conn, $_SESSION['user_id'], 'delete', 'vehicle', $id, $details);
-    $_SESSION['flash'] = ['type' => 'success', 'message' => 'Vehicle deleted.'];
+    mysqli_begin_transaction($conn);
+
+    $deleteOk = true;
+    $errorText = '';
+
+    $stmt = mysqli_prepare($conn, "DELETE FROM issues WHERE vehicle_id = ?");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $id);
+        $deleteOk = mysqli_stmt_execute($stmt);
+        $errorText = mysqli_stmt_error($stmt);
+        mysqli_stmt_close($stmt);
+    } else {
+        $deleteOk = false;
+        $errorText = mysqli_error($conn);
+    }
+
+    if ($deleteOk) {
+        $stmt = mysqli_prepare($conn, "DELETE FROM rentals WHERE vehicle_id = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            $deleteOk = mysqli_stmt_execute($stmt);
+            $errorText = mysqli_stmt_error($stmt);
+            mysqli_stmt_close($stmt);
+        } else {
+            $deleteOk = false;
+            $errorText = mysqli_error($conn);
+        }
+    }
+
+    if ($deleteOk) {
+        $stmt = mysqli_prepare($conn, "DELETE FROM vehicles WHERE id = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            $deleteOk = mysqli_stmt_execute($stmt);
+            $errorText = mysqli_stmt_error($stmt);
+            mysqli_stmt_close($stmt);
+        } else {
+            $deleteOk = false;
+            $errorText = mysqli_error($conn);
+        }
+    }
+
+    if ($deleteOk) {
+        mysqli_commit($conn);
+        $details = $vehicleName ? "Deleted vehicle {$vehicleName}." : "Deleted vehicle #{$id}.";
+        log_change($conn, $_SESSION['user_id'], 'delete', 'vehicle', $id, $details);
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Vehicle deleted.'];
+    } else {
+        mysqli_rollback($conn);
+        $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Delete failed: ' . $errorText];
+    }
+
     header('Location: admin.php');
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action === 'delete_all') {
+        $countResult = mysqli_query($conn, "SELECT COUNT(*) AS total FROM vehicles");
+        $countRow = $countResult ? mysqli_fetch_assoc($countResult) : null;
+        $vehicleCount = $countRow ? (int) $countRow['total'] : 0;
+        if ($countResult) {
+            mysqli_free_result($countResult);
+        }
+
+        mysqli_begin_transaction($conn);
+        $deleteOk = true;
+        $errorText = '';
+
+        if (!mysqli_query($conn, "DELETE FROM issues")) {
+            $deleteOk = false;
+            $errorText = mysqli_error($conn);
+        }
+        if ($deleteOk && !mysqli_query($conn, "DELETE FROM rentals")) {
+            $deleteOk = false;
+            $errorText = mysqli_error($conn);
+        }
+        if ($deleteOk && !mysqli_query($conn, "DELETE FROM vehicles")) {
+            $deleteOk = false;
+            $errorText = mysqli_error($conn);
+        }
+
+        if ($deleteOk) {
+            mysqli_commit($conn);
+            $details = $vehicleCount > 0
+                ? "Deleted all vehicles ({$vehicleCount})."
+                : "Delete all vehicles requested (none found).";
+            log_change($conn, $_SESSION['user_id'], 'delete', 'vehicle', 0, $details);
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'All vehicles deleted.'];
+        } else {
+            mysqli_rollback($conn);
+            $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Delete failed: ' . $errorText];
+        }
+
+        header('Location: admin.php');
+        exit;
+    }
+
     $name = trim($_POST['name'] ?? '');
     $type = $_POST['type'] ?? '';
     $status = $_POST['status'] ?? '';
@@ -279,17 +366,23 @@ include 'header.php';
         <div class="bg-white shadow-sm rounded-4 overflow-hidden">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
                 <h6 class="fw-bold mb-0">Vehicle list</h6>
-                <form method="get" class="d-flex align-items-center gap-2">
-                    <label class="small text-muted" for="status-filter">Status</label>
-                    <select id="status-filter" name="status" class="form-select form-select-sm">
-                        <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All</option>
-                        <option value="available" <?php echo $statusFilter === 'available' ? 'selected' : ''; ?>>Available</option>
-                        <option value="rented" <?php echo $statusFilter === 'rented' ? 'selected' : ''; ?>>Rented</option>
-                        <option value="maintenance" <?php echo $statusFilter === 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
-                        <option value="broken" <?php echo $statusFilter === 'broken' ? 'selected' : ''; ?>>Broken</option>
-                    </select>
-                    <button class="btn btn-outline-secondary btn-sm" type="submit">Filter</button>
-                </form>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <form method="get" class="d-flex align-items-center gap-2">
+                        <label class="small text-muted" for="status-filter">Status</label>
+                        <select id="status-filter" name="status" class="form-select form-select-sm">
+                            <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All</option>
+                            <option value="available" <?php echo $statusFilter === 'available' ? 'selected' : ''; ?>>Available</option>
+                            <option value="rented" <?php echo $statusFilter === 'rented' ? 'selected' : ''; ?>>Rented</option>
+                            <option value="maintenance" <?php echo $statusFilter === 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
+                            <option value="broken" <?php echo $statusFilter === 'broken' ? 'selected' : ''; ?>>Broken</option>
+                        </select>
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">Filter</button>
+                    </form>
+                    <form method="post" class="d-flex align-items-center gap-2" onsubmit="return confirm('Delete all vehicles? This will remove rentals and issue reports.');">
+                        <input type="hidden" name="action" value="delete_all">
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Delete All Vehicles</button>
+                    </form>
+                </div>
             </div>
             <table class="table table-hover mb-0">
                 <thead class="bg-light">
