@@ -35,3 +35,7 @@ Updated
 - `wallet.php`: logs wallet credits in the transactions history.
 - `profile.php`: added user-facing transactions list.
 - `seed.php`: includes `transactions` in required tables.
+- `admin.php`: implemented default vehicle images logic with a toggle for custom URLs.
+- `index.php`: removed image blocking logic to ensure all vehicle images are displayed.
+- `seed.php`: updated seed data to use local default images (`images/bike.png`, `images/scooter.png`).
+- `images/`: added default images for bikes and scooters.
