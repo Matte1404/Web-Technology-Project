@@ -62,8 +62,21 @@ if (!$vehicle) {
     $errors[] = 'Vehicle not found.';
 }
 
+$userCredit = 0.00;
+if (isset($_SESSION['user_id'])) {
+    $stmt = mysqli_prepare($conn, "SELECT credit FROM users WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $_SESSION['user_id']);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    if ($row = mysqli_fetch_assoc($result)) {
+        $userCredit = (float) $row['credit'];
+    }
+    mysqli_stmt_close($stmt);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
     $minutes = (int) ($_POST['minutes'] ?? 0);
+    $paymentMethod = $_POST['payment_method'] ?? 'simulated';
     $status = normalize_status($vehicle['status']);
 
     if ($status !== 'available') {
@@ -71,6 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
     }
     if ($minutes <= 0) {
         $errors[] = 'Enter usage minutes.';
+    }
+    if ($paymentMethod === 'wallet' && $vehicle) {
+        $estimatedCost = round(((float) $vehicle['hourly_price'] / 60) * $minutes, 2);
+        if ($userCredit < $estimatedCost) {
+            $errors[] = 'Insufficient credit. Please top up or use another method.';
+        }
     }
 
     if (!$errors) {
@@ -85,6 +104,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
         $insertOk = mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
 
+        $walletUpdateOk = true;
+        if ($paymentMethod === 'wallet') {
+            $stmt = mysqli_prepare($conn, "UPDATE users SET credit = credit - ? WHERE id = ?");
+            mysqli_stmt_bind_param($stmt, "di", $cost, $_SESSION['user_id']);
+            $walletUpdateOk = mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
+
         $updateOk = false;
         if ($insertOk) {
             $stmt = mysqli_prepare($conn, "UPDATE vehicles SET status = 'rented' WHERE id = ?");
@@ -93,10 +120,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
             mysqli_stmt_close($stmt);
         }
 
-        if ($insertOk && $updateOk) {
+        if ($insertOk && $updateOk && $walletUpdateOk) {
             mysqli_commit($conn);
             $success = 'Booking confirmed! You can see the summary in your profile.';
             $vehicle['status'] = 'rented';
+            // Update local credit variable to reflect new balance
+            if ($paymentMethod === 'wallet') {
+               $userCredit -= $cost;
+            }
         } else {
             mysqli_rollback($conn);
             $errors[] = 'Booking failed.';
@@ -170,7 +201,20 @@ include 'header.php';
                                 <div class="fw-bold" id="end-estimate">--</div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-unibo w-100 mt-4">Confirm booking</button>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block">Payment Method</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="pay-simulated" value="simulated" checked>
+                                <label class="form-check-label" for="pay-simulated">Credit Card (Simulated)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_method" id="pay-wallet" value="wallet" <?php echo ($userCredit <= 0) ? 'disabled' : ''; ?>>
+                                <label class="form-check-label" for="pay-wallet">
+                                    Wallet Credit (Balance: EUR <?php echo number_format($userCredit, 2); ?>)
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-unibo w-100 mt-2">Confirm booking</button>
                     </form>
                 </div>
             <?php endif; ?>
@@ -215,6 +259,24 @@ include 'header.php';
             minute: '2-digit'
         });
         endEstimate.textContent = endText;
+
+        // Check balance against total
+        var walletRadio = document.getElementById('pay-wallet');
+        if (walletRadio) {
+             // We can check against server-side value embedded or just rely on backend check.
+             // For simple UX, let's just leave it enabled if it was enabled initially, 
+             // or could check dataset if we want more dynamic validation.
+             // Ideally: pass userCredit to JS.
+             var userCredit = <?php echo json_encode((float)$userCredit); ?>;
+             if (total > userCredit) {
+                 walletRadio.disabled = true;
+                 if (walletRadio.checked) {
+                     document.getElementById('pay-simulated').checked = true;
+                 }
+             } else {
+                 walletRadio.disabled = false;
+             }
+        }
     };
     minutesInput.addEventListener('input', updateEstimate);
     updateEstimate();

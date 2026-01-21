@@ -77,7 +77,7 @@ if (!$isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '
     }
 }
 
-$stmt = mysqli_prepare($conn, "SELECT name, email FROM users WHERE id = ?");
+$stmt = mysqli_prepare($conn, "SELECT name, email, credit FROM users WHERE id = ?");
 mysqli_stmt_bind_param($stmt, "i", $userId);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -157,6 +157,10 @@ include 'header.php';
                     <?php else: ?>
                         <p class="text-muted mb-1">Total spent</p>
                         <h4 class="fw-bold text-danger mb-0">EUR <?php echo number_format($totalSpent, 2); ?></h4>
+                        <div class="mt-3">
+                            <p class="text-muted mb-1">Wallet Credit</p>
+                            <h4 class="fw-bold text-success mb-0">EUR <?php echo number_format((float)($user['credit'] ?? 0), 2); ?></h4>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>

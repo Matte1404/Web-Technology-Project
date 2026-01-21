@@ -87,9 +87,9 @@ if (!$schemaReady) {
 
 if ($shouldRun && $schemaReady) {
     $users = [
-        ['name' => 'Admin User', 'email' => 'admin@unibo.it', 'password' => 'admin123', 'role' => 'admin'],
-        ['name' => 'Alex Taylor', 'email' => 'alex.taylor@students.unibo.it', 'password' => 'student123', 'role' => 'user'],
-        ['name' => 'Maya Lee', 'email' => 'maya.lee@students.unibo.it', 'password' => 'student123', 'role' => 'user']
+        ['name' => 'Admin User', 'email' => 'admin@unibo.it', 'password' => 'admin123', 'role' => 'admin', 'credit' => 100.00],
+        ['name' => 'Alex Taylor', 'email' => 'alex.taylor@students.unibo.it', 'password' => 'student123', 'role' => 'user', 'credit' => 50.00],
+        ['name' => 'Maya Lee', 'email' => 'maya.lee@students.unibo.it', 'password' => 'student123', 'role' => 'user', 'credit' => 0.00]
     ];
 
     $vehicles = [
@@ -156,7 +156,7 @@ if ($shouldRun && $schemaReady) {
     ];
 
     $selectUserStmt = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ?");
-    $insertUserStmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)");
+    $insertUserStmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password_hash, role, credit) VALUES (?, ?, ?, ?, ?)");
 
     foreach ($users as $user) {
         mysqli_stmt_bind_param($selectUserStmt, "s", $user['email']);
@@ -170,7 +170,8 @@ if ($shouldRun && $schemaReady) {
         }
 
         $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-        mysqli_stmt_bind_param($insertUserStmt, "ssss", $user['name'], $user['email'], $hash, $user['role']);
+        $credit = $user['credit'] ?? 0.00;
+        mysqli_stmt_bind_param($insertUserStmt, "ssssd", $user['name'], $user['email'], $hash, $user['role'], $credit);
         if (mysqli_stmt_execute($insertUserStmt)) {
             $report['users_added']++;
         }
