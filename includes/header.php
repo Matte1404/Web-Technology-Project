@@ -29,6 +29,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                 <span class="small text-muted d-none d-md-inline">Hi, <?php echo htmlspecialchars($userName); ?></span>
                 <?php if (!$isAdmin): ?>
                     <a href="wallet.php" class="btn btn-outline-secondary btn-sm">Wallet</a>
+                    <a href="roulette.php" class="btn btn-unibo btn-sm"><i class="fas fa-gamepad me-1"></i>Roulette</a>
                 <?php endif; ?>
                 <a href="profile.php" class="btn btn-light rounded-circle"><i class="fas fa-user"></i></a>
                 <?php if ($isAdmin): ?>

@@ -1,0 +1,120 @@
+<?php
+include 'includes/auth.php';
+require_login();
+
+if (isset($_SESSION['user_role']) && strtolower($_SESSION['user_role']) === 'admin') {
+    header('Location: index.php');
+    exit;
+}
+
+include 'includes/header.php';
+?>
+
+<div class="container py-5 text-center">
+    <h1 class="fw-bold mb-4">Wheel of Fortune</h1>
+    <p class="text-muted mb-5">Spin to win free credit for your rides!</p>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="position-relative mx-auto mb-4" style="width: 300px; height: 300px;">
+                <!-- Pointer -->
+                <div class="position-absolute start-50 top-0 translate-middle-x z-2" style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #BB2E29;"></div>
+                
+                <!-- Wheel -->
+                <div id="wheel" class="w-100 h-100 rounded-circle border border-5 border-light shadow overflow-hidden position-relative" style="transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1); background: conic-gradient(
+                    #f8f9fa 0deg 60deg,
+                    #e9ecef 60deg 120deg,
+                    #dee2e6 120deg 180deg,
+                    #ced4da 180deg 240deg,
+                    #adb5bd 240deg 300deg,
+                    #6c757d 300deg 360deg
+                );">
+                    <!-- Segments text (simplified visual) -->
+                    <div class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center">
+                        <span class="h1 fw-bold text-muted opacity-25"><i class="fas fa-gift"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="spinBtn" class="btn btn-unibo btn-lg px-5 rounded-pill shadow-sm">SPIN!</button>
+            
+            <div id="result" class="mt-4" style="display: none;">
+                <div class="alert alert-success fs-5 fw-bold animate-pop">
+                    <i class="fas fa-trophy me-2"></i> <span id="resultText"></span>
+                </div>
+            </div>
+             <div id="error" class="mt-4 alert alert-danger" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.animate-pop {
+    animation: pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wheel = document.getElementById('wheel');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultDiv = document.getElementById('result');
+    const resultText = document.getElementById('resultText');
+    const errorDiv = document.getElementById('error');
+    
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    spinBtn.addEventListener('click', function() {
+        if (isSpinning) return;
+        
+        isSpinning = true;
+        spinBtn.disabled = true;
+        resultDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+
+        // Start request
+        fetch('api/spin.php', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Calculate pseudo-random rotations for visual effect
+                // We don't map exact segments to prizes visually in this simple version, just spin
+                const spins = 5;
+                const degrees = 360 * spins + Math.floor(Math.random() * 360);
+                currentRotation += degrees;
+                
+                wheel.style.transform = `rotate(${currentRotation}deg)`;
+                
+                // Wait for animation
+                setTimeout(() => {
+                    resultText.textContent = data.message;
+                    resultDiv.style.display = 'block';
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                }, 4000);
+            } else {
+                showError(data.message || 'Error occurred');
+            }
+        })
+        .catch(err => {
+            showError('Connection error');
+        });
+    });
+    
+    function showError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.style.display = 'block';
+        isSpinning = false;
+        spinBtn.disabled = false;
+    }
+});
+</script>
+
+<?php include 'includes/footer.php'; ?>

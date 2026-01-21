@@ -122,8 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
 
         $updateOk = false;
         if ($insertOk) {
-            $stmt = mysqli_prepare($conn, "UPDATE vehicles SET status = 'rented' WHERE id = ?");
-            mysqli_stmt_bind_param($stmt, "i", $vehicleId);
+            // Deduct battery: 0.5% per minute
+            $batteryConsumption = ceil($minutes * 0.5);
+            $stmt = mysqli_prepare($conn, "UPDATE vehicles SET status = 'rented', battery = GREATEST(0, battery - ?) WHERE id = ?");
+            mysqli_stmt_bind_param($stmt, "ii", $batteryConsumption, $vehicleId);
             $updateOk = mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
         }
