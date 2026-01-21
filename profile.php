@@ -221,7 +221,7 @@ if ($isAdmin) {
 include 'includes/header.php';
 ?>
 
-    <div class="container py-8 mx-auto" style="max-width: 900px;">
+    <div class="container py-8 mx-auto" style="max-width: 900px;" id="main-content">
         <h1 class="display-5 fw-bold text-dark mb-4"><?php echo $isAdmin ? 'Admin Dashboard' : 'Profile'; ?></h1>
         <div class="bg-white rounded-4 shadow-sm p-5 mb-4">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
@@ -333,11 +333,11 @@ include 'includes/header.php';
                         <table class="table table-sm align-middle mb-0">
                             <thead class="table-light">
                             <tr>
-                                <th>Date</th>
-                                <th>Admin</th>
-                                <th>Action</th>
-                                <th>Entity</th>
-                                <th>Details</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Admin</th>
+                                <th scope="col">Action</th>
+                                <th scope="col">Entity</th>
+                                <th scope="col">Details</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -420,12 +420,12 @@ include 'includes/header.php';
                         <table class="table table-sm align-middle mb-0">
                             <thead class="table-light">
                             <tr>
-                                <th>Vehicle</th>
-                                <th>Type</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>Minutes</th>
-                                <th>Cost</th>
+                                <th scope="col">Vehicle</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Start</th>
+                                <th scope="col">End</th>
+                                <th scope="col">Minutes</th>
+                                <th scope="col">Cost</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -456,11 +456,11 @@ include 'includes/header.php';
                         <table class="table table-sm align-middle mb-0">
                             <thead class="table-light">
                             <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                                <th>Balance after</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Balance after</th>
                             </tr>
                             </thead>
                             <tbody>

@@ -7,7 +7,7 @@ $isAdmin = isset($_SESSION['user_role']) && strtolower((string) $_SESSION['user_
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,8 +16,24 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="CSS/theme.css">
     <link rel="stylesheet" href="CSS/style.css">
+    <style>
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #BB2E29;
+            color: white;
+            padding: 8px;
+            z-index: 10000;
+            transition: top 0.2s;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+    </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">

@@ -10,7 +10,7 @@ if (isset($_SESSION['user_role']) && strtolower($_SESSION['user_role']) === 'adm
 include 'includes/header.php';
 ?>
 
-<div class="container py-5 text-center">
+<div class="container py-5 text-center" id="main-content">
     <h1 class="fw-bold mb-4">Wheel of Fortune</h1>
     <p class="text-muted mb-5">Spin to win free credit for your rides!</p>
 

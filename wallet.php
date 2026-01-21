@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include 'includes/header.php';
 ?>
 
-<div class="container py-5" style="max-width: 720px;">
+<div class="container py-5" style="max-width: 720px;" id="main-content">
     <h1 class="fw-bold mb-3">Wallet</h1>
     <p class="text-muted">Simulate a card payment to add credit to your wallet.</p>
 
@@ -132,7 +132,7 @@ include 'includes/header.php';
         <form method="post">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Add credit amount (EUR)</label>
+                    <label class="form-label fw-bold" for="wallet-amount">Add credit amount (EUR)</label>
                     <input type="number" id="wallet-amount" step="0.01" min="5" max="200" name="amount" class="form-control" value="<?php echo htmlspecialchars($amountInput); ?>" required>
                     <div class="small text-muted mt-2">Choose amount</div>
                     <div class="d-flex flex-wrap gap-2 mt-1">
@@ -143,20 +143,20 @@ include 'includes/header.php';
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Cardholder name</label>
-                    <input type="text" id="wallet-cardholder" name="cardholder" class="form-control" value="<?php echo htmlspecialchars($cardholderInput); ?>" required>
+                    <label class="form-label fw-bold" for="wallet-cardholder">Cardholder name</label>
+                    <input type="text" id="wallet-cardholder" name="cardholder" class="form-control" value="<?php echo htmlspecialchars($cardholderInput); ?>" autocomplete="cc-name" required>
                 </div>
                 <div class="col-md-8">
-                    <label class="form-label fw-bold">Card number</label>
-                    <input type="text" id="wallet-card-number" name="card_number" class="form-control" placeholder="1111 2222 3333 4444" autocomplete="off" required>
+                    <label class="form-label fw-bold" for="wallet-card-number">Card number</label>
+                    <input type="text" id="wallet-card-number" name="card_number" class="form-control" placeholder="1111 2222 3333 4444" autocomplete="cc-number" required>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label fw-bold">Expiry</label>
-                    <input type="text" id="wallet-expiry" name="expiry" class="form-control" placeholder="MM/YY" value="<?php echo htmlspecialchars($expiryInput); ?>" required>
+                    <label class="form-label fw-bold" for="wallet-expiry">Expiry</label>
+                    <input type="text" id="wallet-expiry" name="expiry" class="form-control" placeholder="MM/YY" value="<?php echo htmlspecialchars($expiryInput); ?>" autocomplete="cc-exp" required>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label fw-bold">CVC</label>
-                    <input type="text" id="wallet-cvc" name="cvc" class="form-control" placeholder="123" autocomplete="off" required>
+                    <label class="form-label fw-bold" for="wallet-cvc">CVC</label>
+                    <input type="text" id="wallet-cvc" name="cvc" class="form-control" placeholder="123" autocomplete="cc-csc" required>
                 </div>
             </div>
             <?php // delete from ?>

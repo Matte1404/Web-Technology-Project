@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include 'includes/header.php';
 ?>
 
-<div class="container py-5" style="max-width: 520px;">
+<div class="container py-5" style="max-width: 520px;" id="main-content">
     <h1 class="fw-bold mb-4">Sign up</h1>
     <div class="form-section p-4 shadow-sm">
         <?php if ($errors): ?>
@@ -72,20 +72,20 @@ include 'includes/header.php';
 
         <form method="post" novalidate>
             <div class="mb-3">
-                <label class="form-label fw-bold">Name</label>
-                <input type="text" name="name" class="form-control" required>
+                <label class="form-label fw-bold" for="reg-name">Name</label>
+                <input type="text" id="reg-name" name="name" class="form-control" autocomplete="name" required>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Email</label>
-                <input type="email" name="email" class="form-control" required>
+                <label class="form-label fw-bold" for="reg-email">Email</label>
+                <input type="email" id="reg-email" name="email" class="form-control" autocomplete="username" required>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Password</label>
-                <input type="password" name="password" class="form-control" required>
+                <label class="form-label fw-bold" for="reg-password">Password</label>
+                <input type="password" id="reg-password" name="password" class="form-control" autocomplete="new-password" required>
             </div>
             <div class="mb-4">
-                <label class="form-label fw-bold">Confirm password</label>
-                <input type="password" name="confirm" class="form-control" required>
+                <label class="form-label fw-bold" for="reg-confirm">Confirm password</label>
+                <input type="password" id="reg-confirm" name="confirm" class="form-control" autocomplete="new-password" required>
             </div>
             <button type="submit" class="btn btn-unibo w-100">Create account</button>
         </form>

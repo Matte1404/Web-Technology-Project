@@ -325,7 +325,7 @@ if ($listStmt) {
 include 'includes/header.php';
 ?>
 
-    <div class="container py-5">
+    <div class="container py-5" id="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold">Fleet Management</h2>
             <a class="btn btn-unibo" href="#vehicle-form"><i class="fas fa-plus me-2"></i>Add Vehicle</a>
@@ -489,12 +489,12 @@ include 'includes/header.php';
                 <table class="table table-hover mb-0">
                     <thead class="bg-light">
                     <tr>
-                        <th class="px-4">Vehicle</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Battery</th>
-                        <th>Price per hour</th>
-                        <th class="text-end px-4">Actions</th>
+                        <th scope="col" class="px-4">Vehicle</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Battery</th>
+                        <th scope="col">Price per hour</th>
+                        <th scope="col" class="text-end px-4">Actions</th>
                     </tr>
                     </thead>
                     <tbody>

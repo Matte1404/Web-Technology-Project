@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include 'includes/header.php';
 ?>
 
-<div class="container py-5" style="max-width: 520px;">
+<div class="container py-5" style="max-width: 520px;" id="main-content">
     <h1 class="fw-bold mb-4">Login</h1>
     <div class="form-section p-4 shadow-sm">
         <?php if ($errors): ?>
@@ -78,12 +78,12 @@ include 'includes/header.php';
         <form method="post" novalidate>
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
             <div class="mb-3">
-                <label class="form-label fw-bold">Email</label>
-                <input type="email" id="login-email" name="email" class="form-control" required>
+                <label class="form-label fw-bold" for="login-email">Email</label>
+                <input type="email" id="login-email" name="email" class="form-control" autocomplete="username" required>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Password</label>
-                <input type="password" id="login-password" name="password" class="form-control" required>
+                <label class="form-label fw-bold" for="login-password">Password</label>
+                <input type="password" id="login-password" name="password" class="form-control" autocomplete="current-password" required>
             </div>
             <?php // delete from ?>
             <div class="d-flex flex-wrap gap-2 mb-3">

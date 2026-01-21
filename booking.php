@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
 include 'includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="container py-5" id="main-content">
     <div class="row g-4">
         <div class="col-lg-7">
             <h1 class="fw-bold mb-3">Book your vehicle</h1>
@@ -196,7 +196,7 @@ include 'includes/header.php';
                         <input type="hidden" name="vehicle_id" value="<?php echo htmlspecialchars((string) $vehicleId); ?>">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Duration (minutes)</label>
+                                <label class="form-label fw-bold" for="minutes-input">Duration (minutes)</label>
                                 <input id="minutes-input" type="number" min="1" name="minutes" class="form-control" value="30" required>
                             </div>
                             <div class="col-md-4">

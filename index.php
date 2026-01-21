@@ -86,16 +86,16 @@ if ($stmt) {
 include 'includes/header.php';
 ?>
 
-    <section class="py-5 text-white" style="background: linear-gradient(135deg, #BB2E29 0%, #8B1E1E 100%);">
+    <section class="py-5 text-white" style="background-color: #8B1E1E; background: linear-gradient(135deg, #BB2E29 0%, #8B1E1E 100%);" id="main-content">
         <div class="container text-center py-4">
             <h1 class="display-5 fw-bold mb-3">Find Your Ride</h1>
-            <p class="lead opacity-90">Sustainable campus transportation made easy</p>
+            <p class="lead text-dark">Sustainable campus transportation made easy</p>
 
             <div class="bg-white p-4 rounded-4 shadow-lg text-dark mx-auto mt-5" style="max-width: 520px;">
                 <form class="row g-3" method="get" id="filters">
                     <div class="col-12 text-start">
-                        <label class="form-label small fw-bold">Status</label>
-                        <select class="form-select border-2" name="status">
+                        <label class="form-label fw-bold text-black" for="status-filter-select">Status</label>
+                        <select class="form-select border-2" name="status" id="status-filter-select">
                             <option value="all" <?php echo $filterStatus === 'all' ? 'selected' : ''; ?>>All vehicles</option>
                             <option value="available" <?php echo $filterStatus === 'available' ? 'selected' : ''; ?>>Available</option>
                         </select>
@@ -146,7 +146,7 @@ include 'includes/header.php';
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between">
-                                        <h5 class="fw-bold text-dark"><?php echo htmlspecialchars($row['name']); ?></h5>
+                                        <h3 class="h5 fw-bold text-dark"><?php echo htmlspecialchars($row['name']); ?></h3>
                                         <span class="h4 fw-bold text-danger">EUR <?php echo htmlspecialchars((string) $row['hourly_price']); ?></span>
                                     </div>
                                     <p class="text-muted small mb-1"><?php echo htmlspecialchars($row['location']); ?></p>
@@ -195,9 +195,9 @@ include 'includes/header.php';
                     <div class="list-group list-group-flush bg-transparent">
                         <div class="list-group-item bg-transparent border-0 px-0 mb-3">
                             <div class="d-flex gap-3 align-items-center">
-                                <div class="bg-white p-3 rounded-circle shadow-sm text-danger"><i class="fas fa-map-pin"></i></div>
+                                <div class="bg-white p-3 rounded-circle shadow-sm text-danger"><span class="fas fa-map-pin"></span></div>
                                 <div>
-                                    <h6 class="fw-bold mb-0">Main Campus</h6>
+                                    <h3 class="h6 fw-bold mb-0">Main Campus</h3>
                                     <small class="text-muted">Main Campus Gate</small>
                                 </div>
                             </div>
