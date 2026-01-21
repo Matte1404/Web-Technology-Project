@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $conn */
 include 'db/db_config.php';
-include 'auth.php';
+include 'includes/auth.php';
 
 require_login();
 
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-include 'header.php';
+include 'includes/header.php';
 ?>
 
 <div class="container py-5" style="max-width: 720px;">
@@ -173,4 +173,4 @@ include 'header.php';
     </div>
 </div>
 
-<?php include 'footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

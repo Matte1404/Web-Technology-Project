@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $conn */
 include 'db/db_config.php';
-include 'auth.php';
+include 'includes/auth.php';
 
 require_login();
 
@@ -218,7 +218,7 @@ if ($isAdmin) {
     }
 }
 
-include 'header.php';
+include 'includes/header.php';
 ?>
 
     <div class="container py-8 mx-auto" style="max-width: 900px;">
@@ -486,4 +486,4 @@ include 'header.php';
         <?php endif; ?>
     </div>
 
-<?php include 'footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

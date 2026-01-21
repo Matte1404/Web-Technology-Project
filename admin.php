@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $conn */
 include 'db/db_config.php';
-include 'auth.php';
+include 'includes/auth.php';
 
 require_admin();
 
@@ -322,7 +322,7 @@ if ($listStmt) {
     mysqli_stmt_close($listStmt);
 }
 
-include 'header.php';
+include 'includes/header.php';
 ?>
 
     <div class="container py-5">
@@ -530,4 +530,4 @@ include 'header.php';
         </div>
     </div>
 
-<?php include 'footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

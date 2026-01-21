@@ -1,6 +1,6 @@
 <?php
 /** @var mysqli $conn */
-include 'db/db_config.php';
+include 'db_config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -36,7 +36,7 @@ foreach ($requiredTables as $table) {
 $schemaReady = empty($missingTables);
 $schemaLoaded = false;
 $schemaErrors = [];
-$schemaPath = __DIR__ . '/db/schema.sql';
+$schemaPath = __DIR__ . '/schema.sql';
 
 if ($shouldRun) {
     if (!$schemaReady) {
@@ -262,10 +262,10 @@ if ($shouldRun && $schemaReady) {
 
     $alerts[] = ['type' => 'success', 'message' => 'Seed completed.'];
 } elseif ($shouldRun && !$schemaReady) {
-    $alerts[] = ['type' => 'danger', 'message' => 'Seed cannot run without tables. Import db/schema.sql or reopen seed.php?run=1.'];
+    $alerts[] = ['type' => 'danger', 'message' => 'Seed cannot run without tables. Import db/schema.sql or reopen db/seed.php?run=1.'];
 }
 
-include 'header.php';
+include '../includes/header.php';
 ?>
 
 <div class="container py-5" style="max-width: 720px;">
@@ -306,4 +306,4 @@ include 'header.php';
     <?php endif; ?>
 </div>
 
-<?php include 'footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

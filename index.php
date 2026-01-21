@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $conn */
 include 'db/db_config.php';
-include 'auth.php';
+include 'includes/auth.php';
 
 $isAdmin = is_admin();
 
@@ -83,7 +83,7 @@ if ($stmt) {
     $result = false;
 }
 
-include 'header.php';
+include 'includes/header.php';
 ?>
 
     <section class="py-5 text-white" style="background: linear-gradient(135deg, #BB2E29 0%, #8B1E1E 100%);">
@@ -224,4 +224,4 @@ include 'header.php';
 })();
 </script>
 
-<?php include 'footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

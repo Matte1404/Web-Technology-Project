@@ -1,12 +1,12 @@
 <?php
 /** @var mysqli $conn */
 include 'db/db_config.php';
-include 'auth.php';
+include 'includes/auth.php';
 
 require_login();
 
 if (is_admin()) {
-    include 'header.php';
+    include 'includes/header.php';
     ?>
     <div class="container py-5" style="max-width: 720px;">
         <div class="alert alert-warning">
@@ -15,7 +15,7 @@ if (is_admin()) {
         <a class="btn btn-outline-secondary" href="admin.php">Go to admin panel</a>
     </div>
     <?php
-    include 'footer.php';
+    include 'includes/footer.php';
     exit;
 }
 
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
     }
 }
 
-include 'header.php';
+include 'includes/header.php';
 ?>
 
 <div class="container py-5">
@@ -314,4 +314,4 @@ include 'header.php';
 })();
 </script>
 
-<?php include 'footer.php'; ?>
+<?php include 'includes/footer.php'; ?>
