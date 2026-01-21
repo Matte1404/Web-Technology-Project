@@ -19,6 +19,9 @@ $changeLog = [];
 $changeLogError = null;
 $transactions = [];
 $transactionsError = null;
+$issueReports = [];
+$issueReportsError = null;
+$adminIssueErrors = [];
 
 function format_minutes(int $minutes): string
 {
@@ -52,6 +55,40 @@ function transaction_label(string $type): string
         return 'Rental charge';
     }
     return ucfirst($type);
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_issue') {
+    $issueId = (int) ($_POST['issue_id'] ?? 0);
+    $status = strtolower(trim($_POST['status'] ?? 'open'));
+    $notes = trim($_POST['admin_notes'] ?? '');
+    $allowedStatuses = ['open', 'closed'];
+
+    if ($issueId <= 0) {
+        $adminIssueErrors[] = 'Invalid issue.';
+    }
+    if (!in_array($status, $allowedStatuses, true)) {
+        $adminIssueErrors[] = 'Invalid status.';
+    }
+    if (strlen($notes) > 2000) {
+        $adminIssueErrors[] = 'Notes are too long.';
+    }
+
+    if (!$adminIssueErrors) {
+        $stmt = mysqli_prepare($conn, "UPDATE issues SET status = ?, admin_notes = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "ssii", $status, $notes, $userId, $issueId);
+            $ok = mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+            if ($ok) {
+                $_SESSION['profile_flash'] = ['type' => 'success', 'message' => 'Issue updated successfully.'];
+                header('Location: profile.php#issue-reports');
+                exit;
+            }
+            $adminIssueErrors[] = 'Issue update failed.';
+        } else {
+            $adminIssueErrors[] = 'Issue update failed.';
+        }
+    }
 }
 
 if (!$isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'report_issue') {
@@ -111,6 +148,20 @@ if ($isAdmin) {
         mysqli_stmt_close($stmt);
     } else {
         $changeLogError = 'Change log is not available. Run the schema update.';
+    }
+
+    $stmt = mysqli_prepare($conn, "SELECT i.id, i.description, i.status, i.admin_notes, i.reviewed_at, i.created_at, u.name AS user_name, u.email AS user_email, v.name AS vehicle_name, v.type AS vehicle_type, r.start_time AS rental_start, reviewer.name AS reviewer_name FROM issues i JOIN users u ON i.user_id = u.id JOIN vehicles v ON i.vehicle_id = v.id LEFT JOIN rentals r ON i.rental_id = r.id LEFT JOIN users reviewer ON i.reviewed_by = reviewer.id ORDER BY i.created_at DESC");
+    if ($stmt) {
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $issueReports[] = $row;
+            }
+        }
+        mysqli_stmt_close($stmt);
+    } else {
+        $issueReportsError = 'Issue reports are not available. Run the schema update.';
     }
 } else {
     $stmt = mysqli_prepare($conn, "SELECT r.id, r.vehicle_id, r.start_time, r.end_time, r.minutes, v.name AS vehicle_name, v.type AS vehicle_type FROM rentals r JOIN vehicles v ON r.vehicle_id = v.id WHERE r.user_id = ? AND r.start_time <= ? AND (r.end_time IS NULL OR r.end_time >= ?) ORDER BY r.start_time DESC LIMIT 1");
@@ -205,6 +256,72 @@ include 'header.php';
         <?php endif; ?>
 
         <?php if ($isAdmin): ?>
+            <div class="bg-white rounded-4 shadow-sm p-4 mb-4" id="issue-reports">
+                <h5 class="fw-bold mb-3">Issue reports</h5>
+
+                <?php if ($adminIssueErrors): ?>
+                    <div class="alert alert-danger">
+                        <?php foreach ($adminIssueErrors as $error): ?>
+                            <div><?php echo htmlspecialchars($error); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($issueReportsError): ?>
+                    <div class="alert alert-warning"><?php echo htmlspecialchars($issueReportsError); ?></div>
+                <?php elseif (!$issueReports): ?>
+                    <p class="text-muted mb-0">No reports yet.</p>
+                <?php else: ?>
+                    <?php foreach ($issueReports as $report): ?>
+                        <?php
+                        $reportStatus = strtolower(trim($report['status']));
+                        $statusClass = $reportStatus === 'closed' ? 'bg-success' : 'bg-warning text-dark';
+                        $reviewedLabel = $report['reviewed_at']
+                            ? 'Reviewed ' . $report['reviewed_at'] . ($report['reviewer_name'] ? ' by ' . $report['reviewer_name'] : '')
+                            : 'Not reviewed yet';
+                        ?>
+                        <div class="border rounded-4 p-3 mb-3">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <div>
+                                    <div class="fw-bold"><?php echo htmlspecialchars($report['vehicle_name']); ?> (<?php echo htmlspecialchars(type_label($report['vehicle_type'])); ?>)</div>
+                                    <div class="text-muted small">Reported by <?php echo htmlspecialchars($report['user_name']); ?> (<?php echo htmlspecialchars($report['user_email']); ?>)</div>
+                                    <div class="text-muted small">Reported on <?php echo htmlspecialchars($report['created_at']); ?></div>
+                                    <?php if (!empty($report['rental_start'])): ?>
+                                        <div class="text-muted small">Rental started <?php echo htmlspecialchars($report['rental_start']); ?></div>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="badge <?php echo $statusClass; ?> rounded-pill align-self-start"><?php echo htmlspecialchars(ucfirst($reportStatus)); ?></span>
+                            </div>
+                            <div class="mt-3">
+                                <div class="small text-muted">Report</div>
+                                <div class="fw-bold"><?php echo nl2br(htmlspecialchars($report['description'])); ?></div>
+                            </div>
+                            <form method="post" class="mt-3">
+                                <input type="hidden" name="action" value="update_issue">
+                                <input type="hidden" name="issue_id" value="<?php echo htmlspecialchars((string) $report['id']); ?>">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Status</label>
+                                        <select name="status" class="form-select">
+                                            <option value="open" <?php echo $reportStatus === 'open' ? 'selected' : ''; ?>>Open</option>
+                                            <option value="closed" <?php echo $reportStatus === 'closed' ? 'selected' : ''; ?>>Closed</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold">Admin notes</label>
+                                        <textarea name="admin_notes" class="form-control" rows="2" maxlength="2000" placeholder="Add internal notes."><?php echo htmlspecialchars($report['admin_notes'] ?? ''); ?></textarea>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
+                                    <div class="small text-muted"><?php echo htmlspecialchars($reviewedLabel); ?></div>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
             <div class="bg-white rounded-4 shadow-sm p-4">
                 <h5 class="fw-bold mb-3">Change log</h5>
                 <?php if ($changeLogError): ?>

@@ -297,6 +297,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $errors) {
     ];
 }
 
+$vehicles = [];
+$listQuery = "SELECT * FROM vehicles";
+$listParams = [];
+$listTypes = '';
+if ($statusFilter !== 'all') {
+    $listQuery .= " WHERE status = ?";
+    $listParams[] = $statusFilter;
+    $listTypes .= 's';
+}
+$listQuery .= " ORDER BY id DESC";
+$listStmt = mysqli_prepare($conn, $listQuery);
+if ($listStmt && $listParams) {
+    mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
+}
+if ($listStmt) {
+    mysqli_stmt_execute($listStmt);
+    $listResult = mysqli_stmt_get_result($listStmt);
+    if ($listResult) {
+        while ($row = mysqli_fetch_assoc($listResult)) {
+            $vehicles[] = $row;
+        }
+    }
+    mysqli_stmt_close($listStmt);
+}
+
 include 'header.php';
 ?>
 
@@ -406,11 +431,11 @@ include 'header.php';
             </form>
         </div>
 
-        <div class="bg-white shadow-sm rounded-4 overflow-hidden">
+        <div class="bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style="max-width: 980px;">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
                 <h6 class="fw-bold mb-0">Vehicle list</h6>
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <form method="get" class="d-flex align-items-center gap-2">
+                <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
+                    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
                         <label class="small text-muted" for="status-filter">Status</label>
                         <select id="status-filter" name="status" class="form-select form-select-sm">
                             <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>>All</option>
@@ -427,69 +452,81 @@ include 'header.php';
                     </form>
                 </div>
             </div>
-            <table class="table table-hover mb-0">
-                <thead class="bg-light">
-                <tr>
-                    <th class="px-4">Vehicle</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Battery</th>
-                    <th>Price per hour</th>
-                    <th class="text-end px-4">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php
-                $listQuery = "SELECT * FROM vehicles";
-                $listParams = [];
-                $listTypes = '';
-                if ($statusFilter !== 'all') {
-                    $listQuery .= " WHERE status = ?";
-                    $listParams[] = $statusFilter;
-                    $listTypes .= 's';
-                }
-                $listQuery .= " ORDER BY id DESC";
-                $listStmt = mysqli_prepare($conn, $listQuery);
-                if ($listStmt && $listParams) {
-                    mysqli_stmt_bind_param($listStmt, $listTypes, ...$listParams);
-                }
-                if ($listStmt) {
-                    mysqli_stmt_execute($listStmt);
-                    $listResult = mysqli_stmt_get_result($listStmt);
-                } else {
-                    $listResult = false;
-                }
-
-                if ($listResult && mysqli_num_rows($listResult) > 0):
-                    while ($row = mysqli_fetch_assoc($listResult)):
-                        $statusLabel = status_label($row['status']);
-                        ?>
-                        <tr class="align-middle">
-                            <td class="px-4 fw-bold"><?php echo htmlspecialchars($row['name']); ?></td>
-                            <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars(type_label($row['type'])); ?></span></td>
-                            <td>
-                            <span class="badge <?php echo status_badge_class($row['status']); ?>">
-                                <?php echo htmlspecialchars($statusLabel); ?>
-                            </span>
-                            </td>
-                            <td><?php echo htmlspecialchars((string) $row['battery']); ?>%</td>
-                            <td>EUR <?php echo htmlspecialchars((string) $row['hourly_price']); ?></td>
-                            <td class="text-end px-4">
-                                <a href="admin.php?edit=<?php echo $row['id']; ?>#vehicle-form" class="btn btn-sm btn-outline-primary me-2"><i class="fas fa-edit"></i></a>
-                                <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
+            <div class="d-block d-md-none p-3">
+                <?php if (!$vehicles): ?>
+                    <div class="text-center text-muted py-4">No vehicles found.</div>
                 <?php else: ?>
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No vehicles found.</td>
-                    </tr>
+                    <?php foreach ($vehicles as $row): ?>
+                        <?php
+                        $statusLabel = status_label($row['status']);
+                        $badgeClass = status_badge_class($row['status']);
+                        ?>
+                        <div class="border rounded-4 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <div class="fw-bold"><?php echo htmlspecialchars($row['name']); ?></div>
+                                    <div class="text-muted small">Type: <?php echo htmlspecialchars(type_label($row['type'])); ?></div>
+                                </div>
+                                <span class="badge <?php echo $badgeClass; ?> rounded-pill"><?php echo htmlspecialchars($statusLabel); ?></span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small mt-2">
+                                <span>Battery</span>
+                                <span><?php echo htmlspecialchars((string) $row['battery']); ?>%</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>Price per hour</span>
+                                <span>EUR <?php echo htmlspecialchars((string) $row['hourly_price']); ?></span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <a href="admin.php?edit=<?php echo $row['id']; ?>#vehicle-form" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 <?php endif; ?>
-                </tbody>
-            </table>
-            <?php if ($listStmt): ?>
-                <?php mysqli_stmt_close($listStmt); ?>
-            <?php endif; ?>
+            </div>
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="px-4">Vehicle</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Battery</th>
+                        <th>Price per hour</th>
+                        <th class="text-end px-4">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php if ($vehicles): ?>
+                        <?php foreach ($vehicles as $row): ?>
+                            <?php $statusLabel = status_label($row['status']); ?>
+                            <tr class="align-middle">
+                                <td class="px-4 fw-bold"><?php echo htmlspecialchars($row['name']); ?></td>
+                                <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars(type_label($row['type'])); ?></span></td>
+                                <td>
+                                <span class="badge <?php echo status_badge_class($row['status']); ?>">
+                                    <?php echo htmlspecialchars($statusLabel); ?>
+                                </span>
+                                </td>
+                                <td><?php echo htmlspecialchars((string) $row['battery']); ?>%</td>
+                                <td>EUR <?php echo htmlspecialchars((string) $row['hourly_price']); ?></td>
+                                <td class="text-end px-4">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                                        <a href="admin.php?edit=<?php echo $row['id']; ?>#vehicle-form" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                        <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No vehicles found.</td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

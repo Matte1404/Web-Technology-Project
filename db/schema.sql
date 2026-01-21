@@ -61,10 +61,14 @@ CREATE TABLE issues (
     rental_id INT NOT NULL,
     description TEXT NOT NULL,
     status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
+    admin_notes TEXT DEFAULT NULL,
+    reviewed_by INT DEFAULT NULL,
+    reviewed_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE,
-    FOREIGN KEY (rental_id) REFERENCES rentals(id) ON DELETE CASCADE
+    FOREIGN KEY (rental_id) REFERENCES rentals(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE change_log (
