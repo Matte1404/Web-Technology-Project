@@ -17,6 +17,8 @@ $now = date('Y-m-d H:i:s');
 $activeRental = null;
 $changeLog = [];
 $changeLogError = null;
+$transactions = [];
+$transactionsError = null;
 
 function format_minutes(int $minutes): string
 {
@@ -36,6 +38,18 @@ function type_label(string $type): string
     }
     if ($type === 'scooter') {
         return 'Scooter';
+    }
+    return ucfirst($type);
+}
+
+function transaction_label(string $type): string
+{
+    $type = strtolower(trim($type));
+    if ($type === 'topup') {
+        return 'Credit added';
+    }
+    if ($type === 'rental') {
+        return 'Rental charge';
     }
     return ucfirst($type);
 }
@@ -136,6 +150,21 @@ if ($isAdmin) {
         }
     }
     mysqli_stmt_close($stmt);
+
+    $stmt = mysqli_prepare($conn, "SELECT type, amount, balance_after, description, created_at FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $userId);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $transactions[] = $row;
+            }
+        }
+        mysqli_stmt_close($stmt);
+    } else {
+        $transactionsError = 'Transactions are not available. Run the schema update.';
+    }
 }
 
 include 'header.php';
@@ -160,6 +189,7 @@ include 'header.php';
                         <div class="mt-3">
                             <p class="text-muted mb-1">Wallet Credit</p>
                             <h4 class="fw-bold text-success mb-0">EUR <?php echo number_format((float)($user['credit'] ?? 0), 2); ?></h4>
+                            <a href="wallet.php" class="btn btn-outline-secondary btn-sm mt-2">Open wallet</a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -290,6 +320,45 @@ include 'header.php';
                                     <td><?php echo htmlspecialchars($rental['end_time'] ?? ''); ?></td>
                                     <td><?php echo htmlspecialchars((string) ($rental['minutes'] ?? 0)); ?></td>
                                     <td>EUR <?php echo htmlspecialchars(number_format((float) $rental['total_cost'], 2)); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="bg-white rounded-4 shadow-sm p-4 mt-4">
+                <h5 class="fw-bold mb-3">Transactions</h5>
+                <?php if ($transactionsError): ?>
+                    <div class="alert alert-warning"><?php echo htmlspecialchars($transactionsError); ?></div>
+                <?php elseif (!$transactions): ?>
+                    <p class="text-muted mb-0">No transactions yet.</p>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Balance after</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($transactions as $transaction): ?>
+                                <?php
+                                $amount = (float) $transaction['amount'];
+                                $amountLabel = ($amount > 0 ? '+' : '') . number_format($amount, 2);
+                                $amountClass = $amount >= 0 ? 'text-success' : 'text-danger';
+                                ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($transaction['created_at']); ?></td>
+                                    <td><?php echo htmlspecialchars(transaction_label($transaction['type'])); ?></td>
+                                    <td><?php echo htmlspecialchars($transaction['description']); ?></td>
+                                    <td class="<?php echo $amountClass; ?>">EUR <?php echo htmlspecialchars($amountLabel); ?></td>
+                                    <td>EUR <?php echo htmlspecialchars(number_format((float) $transaction['balance_after'], 2)); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>

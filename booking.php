@@ -76,8 +76,8 @@ if (isset($_SESSION['user_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
     $minutes = (int) ($_POST['minutes'] ?? 0);
-    $paymentMethod = $_POST['payment_method'] ?? 'simulated';
     $status = normalize_status($vehicle['status']);
+    $estimatedCost = 0.0;
 
     if ($status !== 'available') {
         $errors[] = 'Vehicle not available.';
@@ -85,17 +85,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
     if ($minutes <= 0) {
         $errors[] = 'Enter usage minutes.';
     }
-    if ($paymentMethod === 'wallet' && $vehicle) {
+    if ($vehicle) {
         $estimatedCost = round(((float) $vehicle['hourly_price'] / 60) * $minutes, 2);
         if ($userCredit < $estimatedCost) {
-            $errors[] = 'Insufficient credit. Please top up or use another method.';
+            $errors[] = 'Insufficient credit. Please add funds to your wallet.';
         }
     }
 
     if (!$errors) {
         $start = date('Y-m-d H:i:s');
         $end = date('Y-m-d H:i:s', time() + ($minutes * 60));
-        $cost = round(((float) $vehicle['hourly_price'] / 60) * $minutes, 2);
+        $cost = $estimatedCost;
+        $newBalance = $userCredit - $cost;
 
         mysqli_begin_transaction($conn);
 
@@ -104,12 +105,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
         $insertOk = mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
 
-        $walletUpdateOk = true;
-        if ($paymentMethod === 'wallet') {
-            $stmt = mysqli_prepare($conn, "UPDATE users SET credit = credit - ? WHERE id = ?");
-            mysqli_stmt_bind_param($stmt, "di", $cost, $_SESSION['user_id']);
-            $walletUpdateOk = mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
+        $stmt = mysqli_prepare($conn, "UPDATE users SET credit = credit - ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "di", $cost, $_SESSION['user_id']);
+        $walletUpdateOk = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+
+        $transactionOk = true;
+        $transactionStmt = mysqli_prepare($conn, "INSERT INTO transactions (user_id, type, amount, balance_after, description) VALUES (?, 'rental', ?, ?, ?)");
+        if ($transactionStmt) {
+            $amount = 0 - $cost;
+            $description = "Rental for {$vehicle['name']}.";
+            mysqli_stmt_bind_param($transactionStmt, "idds", $_SESSION['user_id'], $amount, $newBalance, $description);
+            $transactionOk = mysqli_stmt_execute($transactionStmt);
+            mysqli_stmt_close($transactionStmt);
         }
 
         $updateOk = false;
@@ -120,14 +128,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
             mysqli_stmt_close($stmt);
         }
 
-        if ($insertOk && $updateOk && $walletUpdateOk) {
+        if ($insertOk && $updateOk && $walletUpdateOk && $transactionOk) {
             mysqli_commit($conn);
             $success = 'Booking confirmed! You can see the summary in your profile.';
             $vehicle['status'] = 'rented';
-            // Update local credit variable to reflect new balance
-            if ($paymentMethod === 'wallet') {
-               $userCredit -= $cost;
-            }
+            $userCredit -= $cost;
         } else {
             mysqli_rollback($conn);
             $errors[] = 'Booking failed.';
@@ -185,7 +190,7 @@ include 'header.php';
                 </div>
 
                 <div class="form-section p-4 shadow-sm">
-                    <form method="post">
+                    <form method="post" class="booking-form">
                         <input type="hidden" name="vehicle_id" value="<?php echo htmlspecialchars((string) $vehicleId); ?>">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
@@ -202,19 +207,15 @@ include 'header.php';
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold d-block">Payment Method</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="payment_method" id="pay-simulated" value="simulated" checked>
-                                <label class="form-check-label" for="pay-simulated">Credit Card (Simulated)</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="payment_method" id="pay-wallet" value="wallet" <?php echo ($userCredit <= 0) ? 'disabled' : ''; ?>>
-                                <label class="form-check-label" for="pay-wallet">
-                                    Wallet Credit (Balance: EUR <?php echo number_format($userCredit, 2); ?>)
-                                </label>
+                            <div class="small text-muted">Wallet balance</div>
+                            <div class="fw-bold">EUR <?php echo number_format($userCredit, 2); ?></div>
+                            <div class="small text-muted mt-1">Bookings are charged to your wallet credit.</div>
+                            <div id="credit-warning" class="alert alert-warning mt-3 d-none">
+                                Not enough credit to confirm this booking.
+                                <a class="alert-link" href="wallet.php">Open wallet</a>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-unibo w-100 mt-2">Confirm booking</button>
+                        <button id="confirm-booking" type="submit" class="btn btn-unibo w-100 mt-2">Confirm booking</button>
                     </form>
                 </div>
             <?php endif; ?>
@@ -231,24 +232,56 @@ include 'header.php';
     </div>
 </div>
 
+<div class="modal fade" id="creditModal" tabindex="-1" aria-labelledby="creditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="creditModalLabel">Insufficient credit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Your wallet balance is not enough to cover this booking. Please add funds to continue.
+            </div>
+            <div class="modal-footer">
+                <a href="wallet.php" class="btn btn-unibo">Open wallet</a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 (function () {
     var minutesInput = document.getElementById('minutes-input');
     var estimate = document.getElementById('price-estimate');
     var endEstimate = document.getElementById('end-estimate');
+    var form = document.querySelector('.booking-form');
+    var creditWarning = document.getElementById('credit-warning');
+    var creditModal = document.getElementById('creditModal');
     if (!minutesInput || !estimate || !endEstimate) {
         return;
     }
     var pricePerMinute = parseFloat(estimate.dataset.pricePerMinute || '0');
+    var userCredit = <?php echo json_encode((float) $userCredit); ?>;
+
+    var updateCreditState = function (total) {
+        var insufficient = total > userCredit;
+        if (creditWarning) {
+            creditWarning.classList.toggle('d-none', !insufficient);
+        }
+        return insufficient;
+    };
+
     var updateEstimate = function () {
         var minutes = parseInt(minutesInput.value, 10);
         if (isNaN(minutes) || minutes <= 0) {
             estimate.textContent = 'EUR 0.00';
             endEstimate.textContent = '--';
+            updateCreditState(0);
             return;
         }
-        var total = (minutes * pricePerMinute).toFixed(2);
-        estimate.textContent = 'EUR ' + total;
+        var total = minutes * pricePerMinute;
+        estimate.textContent = 'EUR ' + total.toFixed(2);
 
         var now = new Date();
         var end = new Date(now.getTime() + (minutes * 60000));
@@ -259,26 +292,24 @@ include 'header.php';
             minute: '2-digit'
         });
         endEstimate.textContent = endText;
-
-        // Check balance against total
-        var walletRadio = document.getElementById('pay-wallet');
-        if (walletRadio) {
-             // We can check against server-side value embedded or just rely on backend check.
-             // For simple UX, let's just leave it enabled if it was enabled initially, 
-             // or could check dataset if we want more dynamic validation.
-             // Ideally: pass userCredit to JS.
-             var userCredit = <?php echo json_encode((float)$userCredit); ?>;
-             if (total > userCredit) {
-                 walletRadio.disabled = true;
-                 if (walletRadio.checked) {
-                     document.getElementById('pay-simulated').checked = true;
-                 }
-             } else {
-                 walletRadio.disabled = false;
-             }
-        }
+        updateCreditState(total);
     };
     minutesInput.addEventListener('input', updateEstimate);
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            var minutes = parseInt(minutesInput.value, 10);
+            var total = 0;
+            if (!isNaN(minutes) && minutes > 0) {
+                total = minutes * pricePerMinute;
+            }
+            if (total > userCredit) {
+                event.preventDefault();
+                if (creditModal && window.bootstrap && window.bootstrap.Modal) {
+                    window.bootstrap.Modal.getOrCreateInstance(creditModal).show();
+                }
+            }
+        });
+    }
     updateEstimate();
 })();
 </script>

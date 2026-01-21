@@ -79,12 +79,18 @@ include 'header.php';
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
             <div class="mb-3">
                 <label class="form-label fw-bold">Email</label>
-                <input type="email" name="email" class="form-control" required>
+                <input type="email" id="login-email" name="email" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Password</label>
-                <input type="password" name="password" class="form-control" required>
+                <input type="password" id="login-password" name="password" class="form-control" required>
             </div>
+            <?php // delete from ?>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('login-email').value='admin@unibo.it';document.getElementById('login-password').value='admin123';">Fill admin</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('login-email').value='alex.taylor@students.unibo.it';document.getElementById('login-password').value='student123';">Fill user</button>
+            </div>
+            <?php // delete to ?>
             <button type="submit" class="btn btn-unibo w-100">Sign in</button>
         </form>
         <p class="small text-muted mt-3 mb-0">Don't have an account? <a href="register.php">Sign up</a></p>

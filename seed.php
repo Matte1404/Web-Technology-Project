@@ -17,7 +17,7 @@ $report = [
     'rentals_skipped' => 0,
     'rentals_missing' => 0
 ];
-$requiredTables = ['users', 'vehicles', 'rentals', 'issues', 'change_log'];
+$requiredTables = ['users', 'vehicles', 'rentals', 'transactions', 'issues', 'change_log'];
 $missingTables = [];
 
 function table_exists(mysqli $conn, string $table): bool
