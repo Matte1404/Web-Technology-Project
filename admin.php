@@ -16,6 +16,11 @@ unset($_SESSION['flash']);
 $allowedTypes = ['bike', 'scooter'];
 $allowedStatuses = ['available', 'rented', 'maintenance', 'broken'];
 
+$defaultImages = [
+    'bike' => 'images/bike.png',
+    'scooter' => 'images/scooter.png'
+];
+
 $statusFilter = $_GET['status'] ?? 'all';
 $allowedFilters = array_merge(['all'], $allowedStatuses);
 if (!in_array($statusFilter, $allowedFilters, true)) {
@@ -199,8 +204,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $location = trim($_POST['location'] ?? '');
     $battery = (int) ($_POST['battery'] ?? 0);
     $hourlyPrice = (float) ($_POST['hourly_price'] ?? 0);
-    $imageUrl = trim($_POST['image_url'] ?? '');
-    $imageUrl = $imageUrl === '' ? null : $imageUrl;
+    
+    $useCustomImage = isset($_POST['use_custom_image']);
+    $customImageUrl = trim($_POST['image_url'] ?? '');
+
+    if ($useCustomImage) {
+        $imageUrl = $customImageUrl === '' ? null : $customImageUrl;
+    } else {
+        $imageUrl = $defaultImages[$type] ?? null;
+    }
 
     if ($name === '') {
         $errors[] = 'Name is required.';
@@ -350,9 +362,40 @@ include 'header.php';
                         <input type="number" step="0.01" name="hourly_price" class="form-control" value="<?php echo htmlspecialchars((string) $formData['hourly_price']); ?>" required>
                     </div>
                     <div class="col-md-12">
-                        <label class="form-label fw-bold">Image (URL)</label>
-                        <input type="text" name="image_url" class="form-control" value="<?php echo htmlspecialchars((string) $formData['image_url']); ?>">
+                        <?php
+                            $currentImage = $formData['image_url'] ?? '';
+                            $isDefault = in_array($currentImage, $defaultImages);
+                            // If it's a new vehicle (create mode), default to NOT using custom image (so checkbox unchecked)
+                            // If update mode, check if current image is NOT one of the defaults
+                            $useCustomChecked = $formMode === 'update' && !$isDefault && $currentImage !== '';
+                        ?>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="use_custom_image" name="use_custom_image" 
+                                <?php echo $useCustomChecked ? 'checked' : ''; ?>>
+                            <label class="form-check-label" for="use_custom_image">
+                                Use custom image
+                            </label>
+                        </div>
+                        <div id="image_url_container" style="<?php echo $useCustomChecked ? '' : 'display: none;'; ?>">
+                            <label class="form-label fw-bold">Image (URL)</label>
+                            <input type="text" name="image_url" id="image_url" class="form-control" value="<?php echo htmlspecialchars((string) $formData['image_url']); ?>">
+                        </div>
                     </div>
+                </div>
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var checkbox = document.getElementById('use_custom_image');
+                    var container = document.getElementById('image_url_container');
+                    
+                    function toggleImageInput() {
+                        container.style.display = checkbox.checked ? 'block' : 'none';
+                    }
+                    
+                    checkbox.addEventListener('change', toggleImageInput);
+                    // Initial check handled by PHP style output, but good to have sync if needed
+                });
+                </script>
                 </div>
                 <div class="d-flex gap-2 mt-3">
                     <button type="submit" class="btn btn-unibo"><?php echo $formMode === 'update' ? 'Update' : 'Create'; ?></button>

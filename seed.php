@@ -100,7 +100,7 @@ if ($shouldRun && $schemaReady) {
             'location' => 'Main Campus Gate',
             'battery' => 78,
             'hourly_price' => 2.50,
-            'image_url' => null
+            'image_url' => 'images/bike.png'
         ],
         [
             'name' => 'Bike 02',
@@ -109,7 +109,7 @@ if ($shouldRun && $schemaReady) {
             'location' => 'Central Square',
             'battery' => 32,
             'hourly_price' => 2.10,
-            'image_url' => null
+            'image_url' => 'images/bike.png'
         ],
         [
             'name' => 'Scooter 01',
@@ -118,7 +118,7 @@ if ($shouldRun && $schemaReady) {
             'location' => 'East Campus Hub',
             'battery' => 90,
             'hourly_price' => 3.00,
-            'image_url' => null
+            'image_url' => 'images/scooter.png'
         ],
         [
             'name' => 'Scooter 02',
@@ -127,7 +127,7 @@ if ($shouldRun && $schemaReady) {
             'location' => 'Engineering Park',
             'battery' => 15,
             'hourly_price' => 2.80,
-            'image_url' => null
+            'image_url' => 'images/scooter.png'
         ],
         [
             'name' => 'Bike 03',
@@ -136,7 +136,7 @@ if ($shouldRun && $schemaReady) {
             'location' => 'Library Plaza',
             'battery' => 55,
             'hourly_price' => 2.20,
-            'image_url' => null
+            'image_url' => 'images/bike.png'
         ]
     ];
 

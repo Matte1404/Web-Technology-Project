@@ -11,26 +11,7 @@ if (!in_array($filterStatus, $allowedStatuses, true)) {
     $filterStatus = 'all';
 }
 
-$autoImageMarkers = [
-    'placehold.co',
-    'images.unsplash.com/photo-1518655048521-f130df041f66',
-    'images.unsplash.com/photo-1508975553364-7be68795f3d7',
-    'images.unsplash.com/photo-1529156069898-49953e39b3ac',
-    'images.unsplash.com/photo-1503376780353-7e6692767b70',
-    'images.unsplash.com/photo-1485965120184-e220f721d03e',
-    'images.unsplash.com/photo-1500530855697-b586d89ba3ee'
-];
 
-function is_auto_image(string $url, array $markers): bool
-{
-    $lowerUrl = strtolower($url);
-    foreach ($markers as $marker) {
-        if (strpos($lowerUrl, strtolower($marker)) !== false) {
-            return true;
-        }
-    }
-    return false;
-}
 
 function status_label(string $status): string
 {
@@ -147,7 +128,7 @@ include 'header.php';
                         $badgeClass = status_badge_class($row['status']);
                         $isAvailable = strtolower(trim($row['status'])) === 'available';
                         $imageUrl = trim((string) ($row['image_url'] ?? ''));
-                        $showImage = $imageUrl !== '' && !is_auto_image($imageUrl, $autoImageMarkers);
+                        $showImage = $imageUrl !== '';
                         ?>
                         <div class="col">
                             <div class="unibo-card h-100 overflow-hidden shadow-sm border-0">
