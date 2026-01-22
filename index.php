@@ -112,13 +112,10 @@ include 'includes/header.php';
                 <form class="row g-3" method="get" id="filters">
                     <div class="col-12 text-start">
                         <label class="form-label fw-bold" for="status-filter-select" style="color: #000000;">Status</label>
-                        <select class="form-select border-2" name="status" id="status-filter-select">
-                            <option value="all" selected="">All vehicles</option>
-                            <option value="available">Available</option>
+                        <select class="form-select border-2" name="status" id="status-filter-select" onchange="this.form.submit()">
+                            <option value="all" <?php echo $filterStatus === 'all' ? 'selected' : ''; ?>>All vehicles</option>
+                            <option value="available" <?php echo $filterStatus === 'available' ? 'selected' : ''; ?>>Available</option>
                         </select>
-                    </div>
-                    <div class="col-12 text-end">
-                        <button class="btn btn-unibo" type="submit">Apply filter</button>
                     </div>
                 </form>
             </div>

@@ -37,8 +37,23 @@ $amount = $prizes[$randomIndex];
 mysqli_begin_transaction($conn);
 
 try {
-    $updateStmt = mysqli_prepare($conn, "UPDATE users SET credit = credit + ? WHERE id = ?");
-    mysqli_stmt_bind_param($updateStmt, "di", $amount, $userId);
+
+    $today = date('Y-m-d');
+    
+    // Check last spin
+    $checkStmt = mysqli_prepare($conn, "SELECT last_spin FROM users WHERE id = ?");
+    mysqli_stmt_bind_param($checkStmt, "i", $userId);
+    mysqli_stmt_execute($checkStmt);
+    $checkResult = mysqli_stmt_get_result($checkStmt);
+    $userRow = mysqli_fetch_assoc($checkResult);
+    mysqli_stmt_close($checkStmt);
+
+    if ($userRow['last_spin'] === $today) {
+        throw new Exception("You have already used your daily spin!");
+    }
+
+    $updateStmt = mysqli_prepare($conn, "UPDATE users SET credit = credit + ?, last_spin = ? WHERE id = ?");
+    mysqli_stmt_bind_param($updateStmt, "dsi", $amount, $today, $userId);
     mysqli_stmt_execute($updateStmt);
     mysqli_stmt_close($updateStmt);
 
@@ -69,5 +84,7 @@ try {
 } catch (Exception $e) {
     mysqli_rollback($conn);
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Database error']);
+    // If it's our logic exception, show the message. Otherwise show generic error.
+    $msg = $e->getMessage() === "You have already used your daily spin!" ? $e->getMessage() : 'Database error';
+    echo json_encode(['success' => false, 'message' => $msg]);
 }

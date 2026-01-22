@@ -19,6 +19,7 @@ CREATE TABLE users (
     role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
     status ENUM('active', 'blocked') NOT NULL DEFAULT 'active',
     credit DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    last_spin DATE DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
