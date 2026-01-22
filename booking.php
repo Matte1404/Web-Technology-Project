@@ -58,7 +58,6 @@ if ($vehicleId > 0) {
     mysqli_stmt_close($stmt);
 }
 
-// Fetch hubs for the map
 $hubsQuery = "SELECT * FROM hubs ORDER BY name ASC";
 $hubsResult = mysqli_query($conn, $hubsQuery);
 $hubsData = [];
@@ -251,7 +250,6 @@ include 'includes/header.php';
 
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        // Cesena coordinates
                         var map = L.map('map').setView([44.1485, 12.2346], 13);
 
                         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -259,7 +257,6 @@ include 'includes/header.php';
                             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                         }).addTo(map);
 
-                        // HUB LOCATIONS
                         var hubs = <?php echo json_encode($hubsData); ?>;
 
                         hubs.forEach(function(hub) {

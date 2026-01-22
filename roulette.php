@@ -17,10 +17,8 @@ include 'includes/header.php';
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
             <div class="position-relative mx-auto mb-4" style="width: 300px; height: 300px;">
-                <!-- Pointer -->
                 <div class="position-absolute start-50 top-0 translate-middle-x z-2" style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #BB2E29;"></div>
-                
-                <!-- Wheel -->
+
                 <div id="wheel" class="w-100 h-100 rounded-circle border border-5 border-light shadow overflow-hidden position-relative" style="transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1); background: conic-gradient(
                     #f8f9fa 0deg 60deg,
                     #e9ecef 60deg 120deg,
@@ -29,7 +27,6 @@ include 'includes/header.php';
                     #adb5bd 240deg 300deg,
                     #6c757d 300deg 360deg
                 );">
-                    <!-- Segments text (simplified visual) -->
                     <div class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center">
                         <span class="h1 fw-bold text-muted opacity-25 fas fa-gift"></span>
                     </div>

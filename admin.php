@@ -561,14 +561,13 @@ include 'includes/header.php';
         <?php endif; ?>
 
         <?php if ($currentTab === 'vehicles'): ?>
-             <!-- ... existing vehicles content ... -->
             <div class="d-flex justify-content-end mb-3">
                  <a class="btn btn-unibo fas fa-plus me-2" href="#vehicle-form" aria-label="Add vehicle"> Add Vehicle</a>
             </div>
 
             <div class="form-section p-4 shadow-sm mb-4" id="vehicle-form" >
                 <h3 class="h5 fw-bold mb-3" aria-label="Edit or add vehicle"><?php echo $formMode === 'update' ? 'Edit Vehicle' : 'New Vehicle'; ?></h3>
-                <!-- ... form content ... -->
+
                 <form method="post">
                     <input type="hidden" name="action" value="<?php echo $formMode; ?>">
                     <?php if ($formMode === 'update'): ?>
@@ -667,7 +666,6 @@ include 'includes/header.php';
                         </form>
                     </div>
                 </div>
-                <!-- ... vehicle list body ... -->
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">
@@ -810,7 +808,6 @@ include 'includes/header.php';
                 </div>
             </div>
         <?php elseif ($currentTab === 'hubs'): ?>
-            <!-- HUBS TAB CONTENT -->
             <div class="form-section p-4 shadow-sm mb-4" id="hub-form">
                 <h3 class="h5 fw-bold mb-3"><?php echo $editHub ? 'Edit Hub' : 'Create Hub'; ?></h3>
                 <form method="post">

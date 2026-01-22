@@ -202,14 +202,11 @@ include 'includes/header.php';
         <div class="container">
             <h2 class="fw-bold mb-4 text-center">Nearby Pick-up Points</h2>
             <div class="row align-items-center">
-                <!-- List (Left) -->
                 <div class="col-md-6 px-lg-5 mb-4 mb-md-0 order-2 order-md-1">
                     <div class="list-group list-group-flush bg-transparent" id="hub-list">
-                        <!-- JS populated -->
                     </div>
                 </div>
-                
-                <!-- Map (Right) -->
+
                 <div class="col-md-6 order-1 order-md-2">
                     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
                     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -219,7 +216,6 @@ include 'includes/header.php';
                     </div>
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            // Cesena coordinates
                             var map = L.map('home-map').setView([44.1485, 12.2346], 14);
                             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
                             
@@ -227,10 +223,8 @@ include 'includes/header.php';
                             var listContainer = document.getElementById('hub-list');
 
                             hubs.forEach(function(h) {
-                                // Add Marker
                                 L.marker([h.lat, h.lng]).addTo(map).bindPopup('<strong>' + h.name + '</strong><br>' + h.desc);
 
-                                // Add List Item
                                 var item = document.createElement('div');
                                 item.className = 'list-group-item bg-transparent border-0 px-0 mb-3 hub-item';
                                 item.innerHTML = `
