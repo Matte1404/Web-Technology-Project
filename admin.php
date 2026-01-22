@@ -305,7 +305,7 @@ if (!in_array($currentTab, $allowedTabs, true)) {
     $currentTab = 'vehicles';
 }
 
-// --- USER ACTIONS ---
+
 
 if (isset($_GET['delete_user'])) {
     $id = (int) $_GET['delete_user'];
@@ -314,9 +314,8 @@ if (isset($_GET['delete_user'])) {
     } else {
         mysqli_begin_transaction($conn);
         $deleteOk = true;
-        
-        // Delete related data first
-        $tables = ['issues', 'rentals', 'transactions', 'change_log']; // Clean dependent data
+
+        $tables = ['issues', 'rentals', 'transactions', 'change_log'];
         foreach ($tables as $table) {
             $col = (($table === 'change_log') ? 'admin_id' : 'user_id');
             if ($deleteOk && !mysqli_query($conn, "DELETE FROM $table WHERE $col = $id")) {
@@ -342,14 +341,13 @@ if (isset($_GET['delete_user'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($action, 'user_') === 0) {
-    // User Form Handling
+
     $userName = trim($_POST['name'] ?? '');
     $userEmail = trim($_POST['email'] ?? '');
     $userPassword = $_POST['password'] ?? '';
     $userRole = $_POST['role'] ?? 'user';
     $userStatus = $_POST['status'] ?? 'active';
-    
-    // basic validation
+
     if ($userName === '' || $userEmail === '') {
         $errors[] = 'Name and email are required.';
     }
@@ -359,7 +357,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($action, 'user_') === 0) {
              if ($userPassword === '') {
                  $errors[] = 'Password is required for new users.';
              } else {
-                 // Check email
                  $stmt = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ?");
                  mysqli_stmt_bind_param($stmt, "s", $userEmail);
                  mysqli_stmt_execute($stmt);
@@ -389,9 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($action, 'user_') === 0) {
              if ($editUserId <= 0) {
                  $errors[] = 'Invalid user ID.';
              } else {
-                 // Check email uniquess if changed (omitted for brevity, assuming mostly role updates)
-                 
-                 // If password provided, update it
+
                  if ($userPassword !== '') {
                      $salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
                      $passwordHash = hash('sha512', $userPassword . $salt);
@@ -415,17 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($action, 'user_') === 0) {
     }
 }
 
-// --- VEHICLE ACTIONS (existing logic, wrapped) ---
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['create', 'update', 'delete_all'])) {
-  // ... (Existing vehicle POST logic handled above in file, but ensure it doesn't conflict)
-  // Logic already exists in file, assuming it's retained before this block or I need to accept it's there. 
-  // Wait, I am replacing lines 300-323 which was just the listing logic. 
-  // The POST logic for vehicles was lines 157-261. I am NOT replacing that.
-  // I am replacing the listing logic at the end of the script before the HTML.
-}
-
-// FETCH DATA FOR VIEWS
 
 $vehicles = [];
 if ($currentTab === 'vehicles') {

@@ -68,22 +68,18 @@ document.addEventListener('DOMContentLoaded', function() {
         resultDiv.style.display = 'none';
         errorDiv.style.display = 'none';
 
-        // Start request
         fetch('api/spin.php', {
             method: 'POST'
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Calculate pseudo-random rotations for visual effect
-                // We don't map exact segments to prizes visually in this simple version, just spin
                 const spins = 5;
                 const degrees = 360 * spins + Math.floor(Math.random() * 360);
                 currentRotation += degrees;
                 
                 wheel.style.transform = `rotate(${currentRotation}deg)`;
                 
-                // Wait for animation
                 setTimeout(() => {
                     resultText.textContent = data.message;
                     resultDiv.style.display = 'block';

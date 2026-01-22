@@ -86,7 +86,6 @@ if (!$schemaReady) {
 }
 
 if ($shouldRun && $schemaReady) {
-    // Helper to get hash and salt
     function get_auth_data($password) {
         $salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
         $password = hash('sha512', $password . $salt);

@@ -30,7 +30,6 @@ $userId = $_SESSION['user_id'];
 
 
 
-// Define prizes
 $prizes = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00];
 $randomIndex = array_rand($prizes);
 $amount = $prizes[$randomIndex];
@@ -38,13 +37,11 @@ $amount = $prizes[$randomIndex];
 mysqli_begin_transaction($conn);
 
 try {
-    // 1. Update user balance
     $updateStmt = mysqli_prepare($conn, "UPDATE users SET credit = credit + ? WHERE id = ?");
     mysqli_stmt_bind_param($updateStmt, "di", $amount, $userId);
     mysqli_stmt_execute($updateStmt);
     mysqli_stmt_close($updateStmt);
 
-    // 2. Get new balance
     $balanceStmt = mysqli_prepare($conn, "SELECT credit FROM users WHERE id = ?");
     mysqli_stmt_bind_param($balanceStmt, "i", $userId);
     mysqli_stmt_execute($balanceStmt);
@@ -53,7 +50,6 @@ try {
     $newBalance = $row['credit'];
     mysqli_stmt_close($balanceStmt);
 
-    // 3. Log transaction
     $desc = "Wheel of Fortune Bonus";
     $type = 'topup';
     $logStmt = mysqli_prepare($conn, "INSERT INTO transactions (user_id, type, amount, balance_after, description) VALUES (?, ?, ?, ?, ?)");

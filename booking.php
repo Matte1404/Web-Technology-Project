@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
 
         $updateOk = false;
         if ($insertOk) {
-            // Deduct battery: 0.5% per minute
+            // Battery behaviour: - 0.5% per minute
             $batteryConsumption = ceil($minutes * 0.5);
             $stmt = mysqli_prepare($conn, "UPDATE vehicles SET status = 'rented', battery = GREATEST(0, battery - ?) WHERE id = ?");
             mysqli_stmt_bind_param($stmt, "ii", $batteryConsumption, $vehicleId);
@@ -247,7 +247,7 @@ include 'includes/header.php';
                             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                         }).addTo(map);
 
-                        // Define Hub Locations (Hot Points)
+                        // HUB LOCATIONS
                         var hubs = [
                             { lat: 44.4942, lng: 11.3465, name: "Piazza Maggiore Hub" },
                             { lat: 44.4969, lng: 11.3564, name: "University District - Via Zamboni" },
