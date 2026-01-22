@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 include 'includes/header.php';
 ?>
-
+<main>
 <div class="container py-5" style="max-width: 520px;" id="main-content">
     <h1 class="fw-bold mb-4">Login</h1>
     <div class="form-section p-4 shadow-sm">
@@ -96,5 +96,5 @@ include 'includes/header.php';
         <p class="small text-muted mt-3 mb-0">Don't have an account? <a href="register.php">Sign up</a></p>
     </div>
 </div>
-
+</main>
 <?php include 'includes/footer.php'; ?>

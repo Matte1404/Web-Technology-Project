@@ -9,7 +9,7 @@ if (isset($_SESSION['user_role']) && strtolower($_SESSION['user_role']) === 'adm
 
 include 'includes/header.php';
 ?>
-
+<main>
 <div class="container py-5 text-center" id="main-content">
     <h1 class="fw-bold mb-4">Wheel of Fortune</h1>
     <p class="text-muted mb-5">Spin to win free credit for your rides!</p>
@@ -31,7 +31,7 @@ include 'includes/header.php';
                 );">
                     <!-- Segments text (simplified visual) -->
                     <div class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center">
-                        <span class="h1 fw-bold text-muted opacity-25"><i class="fas fa-gift"></i></span>
+                        <span class="h1 fw-bold text-muted opacity-25 fas fa-gift"></span>
                     </div>
                 </div>
             </div>
@@ -39,24 +39,15 @@ include 'includes/header.php';
             <button id="spinBtn" class="btn btn-unibo btn-lg px-5 rounded-pill shadow-sm">SPIN!</button>
             
             <div id="result" class="mt-4" style="display: none;">
-                <div class="alert alert-success fs-5 fw-bold animate-pop">
-                    <i class="fas fa-trophy me-2"></i> <span id="resultText"></span>
+                <div class="alert alert-success fs-5 fw-bold animate-pop fas fa-trophy me-2">
+                    <span id="resultText"></span>
                 </div>
             </div>
              <div id="error" class="mt-4 alert alert-danger" style="display: none;"></div>
         </div>
     </div>
 </div>
-
-<style>
-.animate-pop {
-    animation: pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-@keyframes pop {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-</style>
+</main>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

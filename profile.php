@@ -317,26 +317,26 @@ if ($isAdmin) {
 
 include 'includes/header.php';
 ?>
-
+<main>
     <div class="container py-8 mx-auto" style="max-width: 900px;" id="main-content">
         <h1 class="display-5 fw-bold text-dark mb-4"><?php echo $isAdmin ? 'Admin Dashboard' : 'Profile'; ?></h1>
         <div class="bg-white rounded-4 shadow-sm p-5 mb-4">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
                     <p class="text-muted mb-1">Name</p>
-                    <h4 class="fw-bold mb-0"><?php echo htmlspecialchars($user['name'] ?? $_SESSION['user_name']); ?></h4>
+                    <h2 class="h4 fw-bold mb-0"><?php echo htmlspecialchars($user['name'] ?? $_SESSION['user_name']); ?></h2>
                     <p class="text-muted mb-0"><?php echo htmlspecialchars($user['email'] ?? ''); ?></p>
                 </div>
                 <div class="text-end">
                     <?php if ($isAdmin): ?>
                         <p class="text-muted mb-1">Role</p>
-                        <h4 class="fw-bold mb-0">Administrator</h4>
+                        <h2 class="h4 fw-bold mb-0">Administrator</h2>
                     <?php else: ?>
                         <p class="text-muted mb-1">Total spent</p>
-                        <h4 class="fw-bold text-danger mb-0">EUR <?php echo number_format($totalSpent, 2); ?></h4>
+                        <h2 class="h4 fw-bold text-danger mb-0">EUR <?php echo number_format($totalSpent, 2); ?></h2>
                         <div class="mt-3">
                             <p class="text-muted mb-1">Wallet Credit</p>
-                            <h4 class="fw-bold text-success mb-0">EUR <?php echo number_format((float)($user['credit'] ?? 0), 2); ?></h4>
+                            <h2 class="h4 fw-bold text-success mb-0">EUR <?php echo number_format((float)($user['credit'] ?? 0), 2); ?></h2>
                             <a href="wallet.php" class="btn btn-outline-secondary btn-sm mt-2">Open wallet</a>
                         </div>
                     <?php endif; ?>
@@ -354,7 +354,7 @@ include 'includes/header.php';
 
         <?php if ($isAdmin): ?>
             <div class="bg-white rounded-4 shadow-sm p-4 mb-4" id="issue-reports">
-                <h5 class="fw-bold mb-3">Issue reports</h5>
+                <h2 class="h5 fw-bold mb-3">Issue reports</h2>
 
                 <?php if ($adminIssueErrors): ?>
                     <div class="alert alert-danger">
@@ -420,7 +420,7 @@ include 'includes/header.php';
             </div>
 
             <div class="bg-white rounded-4 shadow-sm p-4">
-                <h5 class="fw-bold mb-3">Change log</h5>
+                <h2 class="h5 fw-bold mb-3">Change log</h2>
                 <?php if ($changeLogError): ?>
                     <div class="alert alert-warning"><?php echo htmlspecialchars($changeLogError); ?></div>
                 <?php elseif (!$changeLog): ?>
@@ -453,8 +453,8 @@ include 'includes/header.php';
                 <?php endif; ?>
             </div>
         <?php else: ?>
-            <div class="bg-white rounded-4 shadow-sm p-4 mb-4" id="active-rental">
-                <h5 class="fw-bold mb-3">Active rental</h5>
+            <div class="bg-white rounded-4 shadow-sm p-4 mb-3" id="active-rental">
+                <h2 class="h5 fw-bold mb-3">Active rental</h2>
 
                 <?php if ($issueErrors): ?>
                     <div class="alert alert-danger">
@@ -493,7 +493,7 @@ include 'includes/header.php';
                         </div>
                     </div>
                     <hr>
-                    <h6 class="fw-bold mb-2">Report a possible issue</h6>
+                    <h3 class="h6 fw-bold mb-2">Report a possible issue</h3>
                     <form method="post">
                         <input type="hidden" name="action" value="report_issue">
                         <input type="hidden" name="rental_id" value="<?php echo htmlspecialchars((string) $activeRental['id']); ?>">
@@ -509,7 +509,7 @@ include 'includes/header.php';
             </div>
 
             <div class="bg-white rounded-4 shadow-sm p-4">
-                <h5 class="fw-bold mb-3">Rental history</h5>
+                <h2 class="h5 fw-bold mb-3">Rental history</h2>
                 <?php if (!$rentals): ?>
                     <p class="text-muted mb-0">No rentals yet.</p>
                 <?php else: ?>
@@ -543,7 +543,7 @@ include 'includes/header.php';
             </div>
 
             <div class="bg-white rounded-4 shadow-sm p-4 mt-4">
-                <h5 class="fw-bold mb-3">Transactions</h5>
+                <h2 class="h5 fw-bold mb-3">Transactions</h2>
                 <?php if ($transactionsError): ?>
                     <div class="alert alert-warning"><?php echo htmlspecialchars($transactionsError); ?></div>
                 <?php elseif (!$transactions): ?>
@@ -582,7 +582,7 @@ include 'includes/header.php';
             </div>
 
             <div class="bg-white rounded-4 shadow-sm p-4 mt-4" id="delete-account">
-                <h5 class="fw-bold mb-2">Delete account</h5>
+                <h2 class="h5 fw-bold mb-2">Delete account</h2>
                 <p class="text-muted small">This permanently removes your profile, rentals, transactions, and issue reports.</p>
 
                 <?php if ($accountErrors): ?>
@@ -608,5 +608,5 @@ include 'includes/header.php';
             </div>
         <?php endif; ?>
     </div>
-
+</main>
 <?php include 'includes/footer.php'; ?>

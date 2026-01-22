@@ -45,7 +45,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                 <span class="small text-muted d-none d-md-inline">Hi, <?php echo htmlspecialchars($userName); ?></span>
                 <?php if (!$isAdmin): ?>
                     <a href="wallet.php" class="btn btn-outline-secondary btn-sm">Wallet</a>
-                    <a href="roulette.php" class="btn btn-unibo btn-sm"><i class="fas fa-gamepad me-1"></i>Roulette</a>
+                    <a href="roulette.php" class="btn btn-unibo btn-sm fas fa-gamepad me-1">Roulette</a>
                 <?php endif; ?>
                 <a href="profile.php" class="btn btn-light rounded-circle fas fa-user" aria-label="Profile"></a>
                 <?php if ($isAdmin): ?>

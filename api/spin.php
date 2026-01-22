@@ -28,18 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $userId = $_SESSION['user_id'];
 
-// Check if user already played today
-$checkStmt = mysqli_prepare($conn, "SELECT id FROM transactions WHERE user_id = ? AND type = 'topup' AND description = 'Wheel of Fortune Bonus' AND DATE(created_at) = CURDATE()");
-mysqli_stmt_bind_param($checkStmt, "i", $userId);
-mysqli_stmt_execute($checkStmt);
-$checkResult = mysqli_stmt_get_result($checkStmt);
-$alreadyPlayed = mysqli_fetch_assoc($checkResult);
-mysqli_stmt_close($checkStmt);
 
-if ($alreadyPlayed) {
-    echo json_encode(['success' => false, 'message' => 'You have already played today. Come back tomorrow!']);
-    exit;
-}
 
 // Define prizes
 $prizes = [0.10, 0.20, 0.50, 1.00, 2.00, 5.00];

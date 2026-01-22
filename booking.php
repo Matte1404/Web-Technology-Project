@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors) {
 
 include 'includes/header.php';
 ?>
-
+<main>
 <div class="container py-5" id="main-content">
     <div class="row g-4">
         <div class="col-lg-7">
@@ -167,7 +167,7 @@ include 'includes/header.php';
                 <div class="form-section p-4 shadow-sm mb-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($vehicle['name']); ?></h5>
+                            <h2 class="h5 fw-bold mb-1"><?php echo htmlspecialchars($vehicle['name']); ?></h2>
                             <p class="text-muted mb-0">Type: <?php echo htmlspecialchars(type_label($vehicle['type'])); ?></p>
                         </div>
                         <span class="badge bg-light text-dark border">
@@ -224,7 +224,7 @@ include 'includes/header.php';
         </div>
         <div class="col-lg-5">
             <div class="form-section p-4 shadow-sm h-100">
-                <h5 class="fw-bold mb-3">Pickup point</h5>
+                <h2 class="h5 fw-bold mb-3">Pickup point</h2>
                 <div class="rounded-4 overflow-hidden shadow-sm">
                     <img src="https://images.unsplash.com/photo-1619468129361-605ebea04b44?w=800" class="img-fluid" alt="Map">
                 </div>
@@ -234,11 +234,11 @@ include 'includes/header.php';
     </div>
 </div>
 
-<div class="modal fade" id="creditModal" tabindex="-1" aria-labelledby="creditModalLabel" aria-hidden="true">
+<div class="modal fade" id="creditModal" tabindex="-1" role="dialog" aria-labelledby="creditModalLabel" aria-hidden="true" aria-modal="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="creditModalLabel">Insufficient credit</h5>
+                <h2 class="h5 modal-title" id="creditModalLabel">Insufficient credit</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -251,7 +251,7 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
-
+</main>
 <script>
 (function () {
     var minutesInput = document.getElementById('minutes-input');

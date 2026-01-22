@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 include 'includes/header.php';
 ?>
-
+<main>
 <div class="container py-5" style="max-width: 720px;" id="main-content">
     <h1 class="fw-bold mb-3">Wallet</h1>
     <p class="text-muted">Simulate a card payment to add credit to your wallet.</p>
@@ -172,5 +172,5 @@ include 'includes/header.php';
         <p class="text-muted small mt-3 mb-0">This is a simulation. No real card data is stored.</p>
     </div>
 </div>
-
+</main>
 <?php include 'includes/footer.php'; ?>
