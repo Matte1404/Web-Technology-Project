@@ -83,23 +83,38 @@ if ($stmt) {
     $result = false;
 }
 
+// Fetch hubs for the map
+$hubsQuery = "SELECT * FROM hubs ORDER BY name ASC";
+$hubsResult = mysqli_query($conn, $hubsQuery);
+$hubsData = [];
+if ($hubsResult) {
+    while ($row = mysqli_fetch_assoc($hubsResult)) {
+        $hubsData[] = [
+            'lat' => (float)$row['lat'], 
+            'lng' => (float)$row['lng'], 
+            'name' => $row['name'], 
+            'desc' => $row['description']
+        ];
+    }
+}
+
 include 'includes/header.php';
 ?>
 
 <main>
 
-    <section class="py-5 text-white" style="background-color: #8B1E1E;" id="main-content">
+    <section class="py-5" style="background-color: #721c1c; color: #ffffff;" id="main-content">
         <div class="container text-center py-4">
-            <h1 class="display-5 fw-bold mb-3">Find Your Ride</h1>
-            <p class="fs-2 text-white">Sustainable campus transportation made easy</p>
+            <h1 class="display-5 fw-bold mb-3" style="color: #ffffff;">Find Your Ride</h1>
+            <p class="fs-2" style="color: #ffffff;">Sustainable campus transportation made easy</p>
 
-            <div class="bg-white p-4 rounded-4 shadow-lg text-dark mx-auto mt-5" style="max-width: 520px;">
+            <div class="bg-white p-4 rounded-4 shadow-lg text-dark mx-auto mt-5" style="max-width: 520px; background-color: #ffffff;">
                 <form class="row g-3" method="get" id="filters">
                     <div class="col-12 text-start">
-                        <label class="form-label fw-bold text-black" for="status-filter-select">Status</label>
+                        <label class="form-label fw-bold" for="status-filter-select" style="color: #000000;">Status</label>
                         <select class="form-select border-2" name="status" id="status-filter-select">
-                            <option value="all" <?php echo $filterStatus === 'all' ? 'selected' : ''; ?>>All vehicles</option>
-                            <option value="available" <?php echo $filterStatus === 'available' ? 'selected' : ''; ?>>Available</option>
+                            <option value="all" selected="">All vehicles</option>
+                            <option value="available">Available</option>
                         </select>
                     </div>
                     <div class="col-12 text-end">
@@ -201,27 +216,22 @@ include 'includes/header.php';
                 <div class="col-md-6 order-1 order-md-2">
                     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
                     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-                    <style> #home-map { height: 400px; width: 100%; border-radius: 12px; } .hub-item { cursor: pointer; transition: background 0.2s; } .hub-item:hover { background: rgba(255,255,255,0.5); } </style>
+                    
                     <div class="rounded-4 overflow-hidden shadow">
                         <div id="home-map"></div>
                     </div>
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            var map = L.map('home-map').setView([44.4949, 11.3426], 13);
+                            // Cesena coordinates
+                            var map = L.map('home-map').setView([44.1485, 12.2346], 14);
                             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
                             
-                            var hubs = [
-                                { lat: 44.4942, lng: 11.3465, name: "Piazza Maggiore Hub", desc: "City Center" },
-                                { lat: 44.4969, lng: 11.3564, name: "Via Zamboni", desc: "University District" },
-                                { lat: 44.5005, lng: 11.3338, name: "Train Station", desc: "Central Station" },
-                                { lat: 44.4891, lng: 11.3413, name: "Engineering Campus", desc: "Viale Risorgimento" }
-                            ];
-
+                            var hubs = <?php echo json_encode($hubsData); ?>;
                             var listContainer = document.getElementById('hub-list');
 
                             hubs.forEach(function(h) {
                                 // Add Marker
-                                L.marker([h.lat, h.lng]).addTo(map).bindPopup('<b>' + h.name + '</b><br>' + h.desc);
+                                L.marker([h.lat, h.lng]).addTo(map).bindPopup('<strong>' + h.name + '</strong><br>' + h.desc);
 
                                 // Add List Item
                                 var item = document.createElement('div');

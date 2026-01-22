@@ -33,6 +33,15 @@ CREATE TABLE vehicles (
     image_url VARCHAR(255) DEFAULT NULL
 );
 
+CREATE TABLE hubs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    lat DECIMAL(10, 8) NOT NULL,
+    lng DECIMAL(11, 8) NOT NULL,
+    image_url VARCHAR(255) DEFAULT NULL
+);
+
 CREATE TABLE rentals (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,

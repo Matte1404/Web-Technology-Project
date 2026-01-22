@@ -300,9 +300,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $errors) {
 }
 
 $currentTab = $_GET['tab'] ?? 'vehicles';
-$allowedTabs = ['vehicles', 'users'];
+$allowedTabs = ['vehicles', 'users', 'hubs'];
 if (!in_array($currentTab, $allowedTabs, true)) {
     $currentTab = 'vehicles';
+}
+
+// --- HUB ACTIONS ---
+if (isset($_GET['delete_hub'])) {
+    $id = (int) $_GET['delete_hub'];
+    $stmt = mysqli_prepare($conn, "DELETE FROM hubs WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    if (mysqli_stmt_execute($stmt)) {
+        log_change($conn, $_SESSION['user_id'], 'delete', 'hub', $id, "Deleted hub #{$id}.");
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Hub deleted.'];
+    } else {
+        $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Delete failed.'];
+    }
+    header('Location: admin.php?tab=hubs');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($action, 'hub_') === 0) {
+    $hubName = trim($_POST['name'] ?? '');
+    $hubDesc = trim($_POST['description'] ?? '');
+    $hubLat = (float) ($_POST['lat'] ?? 0);
+    $hubLng = (float) ($_POST['lng'] ?? 0);
+    
+    if ($hubName === '' || $hubDesc === '') {
+        $errors[] = 'Name and description are required.';
+    }
+    
+    if (!$errors) {
+        if ($action === 'hub_create') {
+            $stmt = mysqli_prepare($conn, "INSERT INTO hubs (name, description, lat, lng) VALUES (?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt, "ssdd", $hubName, $hubDesc, $hubLat, $hubLng);
+            if (mysqli_stmt_execute($stmt)) {
+                log_change($conn, $_SESSION['user_id'], 'create', 'hub', mysqli_insert_id($conn), "Created hub {$hubName}.");
+                $_SESSION['flash'] = ['type' => 'success', 'message' => 'Hub created.'];
+                header('Location: admin.php?tab=hubs');
+                exit;
+            }
+        } elseif ($action === 'hub_update') {
+            $hubId = (int) ($_POST['id'] ?? 0);
+            $stmt = mysqli_prepare($conn, "UPDATE hubs SET name = ?, description = ?, lat = ?, lng = ? WHERE id = ?");
+            mysqli_stmt_bind_param($stmt, "ssddi", $hubName, $hubDesc, $hubLat, $hubLng, $hubId);
+            if (mysqli_stmt_execute($stmt)) {
+                log_change($conn, $_SESSION['user_id'], 'update', 'hub', $hubId, "Updated hub {$hubName}.");
+                $_SESSION['flash'] = ['type' => 'success', 'message' => 'Hub updated.'];
+                header('Location: admin.php?tab=hubs');
+                exit;
+            }
+        }
+    }
 }
 
 
@@ -456,6 +505,26 @@ if ($currentTab === 'users') {
     }
 }
 
+$hubsList = [];
+$editHub = null;
+if ($currentTab === 'hubs') {
+    if (isset($_GET['edit_hub'])) {
+        $editHubId = (int) $_GET['edit_hub'];
+        $stmt = mysqli_prepare($conn, "SELECT * FROM hubs WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $editHubId);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        $editHub = $res ? mysqli_fetch_assoc($res) : null;
+    }
+
+    $res = mysqli_query($conn, "SELECT * FROM hubs ORDER BY id DESC");
+    if ($res) {
+        while ($row = mysqli_fetch_assoc($res)) {
+            $hubsList[] = $row;
+        }
+    }
+}
+
 include 'includes/header.php';
 ?>
 <main>
@@ -471,6 +540,9 @@ include 'includes/header.php';
           </li>
           <li class="nav-item">
             <a class="nav-link <?php echo $currentTab === 'users' ? 'active' : ''; ?>" href="admin.php?tab=users">User Management</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <?php echo $currentTab === 'hubs' ? 'active' : ''; ?>" href="admin.php?tab=hubs">Hub Management</a>
           </li>
         </ul>
 
@@ -489,7 +561,7 @@ include 'includes/header.php';
         <?php endif; ?>
 
         <?php if ($currentTab === 'vehicles'): ?>
-            <!-- VEHICLES TAB CONTENT -->
+             <!-- ... existing vehicles content ... -->
             <div class="d-flex justify-content-end mb-3">
                  <a class="btn btn-unibo fas fa-plus me-2" href="#vehicle-form" aria-label="Add vehicle"> Add Vehicle</a>
             </div>
@@ -733,6 +805,81 @@ include 'includes/header.php';
                                 </td>
                             </tr>
                             <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php elseif ($currentTab === 'hubs'): ?>
+            <!-- HUBS TAB CONTENT -->
+            <div class="form-section p-4 shadow-sm mb-4" id="hub-form">
+                <h3 class="h5 fw-bold mb-3"><?php echo $editHub ? 'Edit Hub' : 'Create Hub'; ?></h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="<?php echo $editHub ? 'hub_update' : 'hub_create'; ?>">
+                    <?php if ($editHub): ?>
+                        <input type="hidden" name="id" value="<?php echo $editHub['id']; ?>">
+                    <?php endif; ?>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label fw-bold">Name</label>
+                            <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($editHub['name'] ?? ''); ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="description" class="form-label fw-bold">Description</label>
+                            <input type="text" name="description" id="description" class="form-control" value="<?php echo htmlspecialchars($editHub['description'] ?? ''); ?>" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="lat" class="form-label fw-bold">Latitude</label>
+                            <input type="number" step="any" name="lat" id="lat" class="form-control" value="<?php echo htmlspecialchars((string)($editHub['lat'] ?? '')); ?>" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="lng" class="form-label fw-bold">Longitude</label>
+                            <input type="number" step="any" name="lng" id="lng" class="form-control" value="<?php echo htmlspecialchars((string)($editHub['lng'] ?? '')); ?>" required>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-unibo"><?php echo $editHub ? 'Update Hub' : 'Create Hub'; ?></button>
+                         <?php if ($editHub): ?>
+                           <a href="admin.php?tab=hubs" class="btn btn-outline-secondary">Cancel Edit</a>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white shadow-sm rounded-4 overflow-hidden">
+                <div class="p-3 border-bottom">
+                    <h3 class="h6 fw-bold mb-0">Hubs List</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4">ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Coordinates</th>
+                                <th class="text-end px-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($hubsList): ?>
+                                <?php foreach ($hubsList as $h): ?>
+                                <tr class="align-middle">
+                                    <td class="px-4">#<?php echo $h['id']; ?></td>
+                                    <td class="fw-bold"><?php echo htmlspecialchars($h['name']); ?></td>
+                                    <td><?php echo htmlspecialchars($h['description']); ?></td>
+                                    <td class="small text-muted"><?php echo htmlspecialchars($h['lat'] . ', ' . $h['lng']); ?></td>
+                                    <td class="text-end px-4">
+                                         <a href="admin.php?tab=hubs&edit_hub=<?php echo $h['id']; ?>#hub-form" class="btn btn-sm btn-outline-primary fas fa-edit" aria-label="Edit hub"></a>
+                                         <a href="admin.php?tab=hubs&delete_hub=<?php echo $h['id']; ?>" class="btn btn-sm btn-outline-danger fas fa-trash" onclick="return confirm('Delete this hub?')" aria-label="Delete hub"></a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No hubs found.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

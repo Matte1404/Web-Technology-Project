@@ -130,7 +130,7 @@ if ($shouldRun && $schemaReady) {
             'name' => 'Bike 01',
             'type' => 'bike',
             'status' => 'available',
-            'location' => 'Main Campus Gate',
+            'location' => 'Campus Scienza', // Updated for Cesena context
             'battery' => 78,
             'hourly_price' => 2.50,
             'image_url' => 'images/bike.png'
@@ -139,7 +139,7 @@ if ($shouldRun && $schemaReady) {
             'name' => 'Bike 02',
             'type' => 'bike',
             'status' => 'maintenance',
-            'location' => 'Central Square',
+            'location' => 'Piazza del Popolo', // Updated for Cesena context
             'battery' => 32,
             'hourly_price' => 2.10,
             'image_url' => 'images/bike.png'
@@ -148,7 +148,7 @@ if ($shouldRun && $schemaReady) {
             'name' => 'Scooter 01',
             'type' => 'scooter',
             'status' => 'available',
-            'location' => 'East Campus Hub',
+            'location' => 'Stazione Cesena', // Updated for Cesena context
             'battery' => 90,
             'hourly_price' => 3.00,
             'image_url' => 'images/scooter.png'
@@ -157,7 +157,7 @@ if ($shouldRun && $schemaReady) {
             'name' => 'Scooter 02',
             'type' => 'scooter',
             'status' => 'broken',
-            'location' => 'Engineering Park',
+            'location' => 'Biblioteca Malatestiana', // Updated for Cesena context
             'battery' => 15,
             'hourly_price' => 2.80,
             'image_url' => 'images/scooter.png'
@@ -166,10 +166,37 @@ if ($shouldRun && $schemaReady) {
             'name' => 'Bike 03',
             'type' => 'bike',
             'status' => 'rented',
-            'location' => 'Library Plaza',
+            'location' => 'Campus Scienza', // Updated for Cesena context
             'battery' => 55,
             'hourly_price' => 2.20,
             'image_url' => 'images/bike.png'
+        ]
+    ];
+
+    $hubs = [
+        [
+            'name' => 'Campus Scienza',
+            'description' => 'Via dell\'Università - Main Campus',
+            'lat' => 44.1485, 
+            'lng' => 12.2346
+        ],
+        [
+            'name' => 'Stazione Cesena',
+            'description' => 'Piazzale Karl Marx - Train Station',
+            'lat' => 44.1428,
+            'lng' => 12.2478
+        ],
+        [
+            'name' => 'Piazza del Popolo',
+            'description' => 'City Center - Historic Square',
+            'lat' => 44.1373,
+            'lng' => 12.2408
+        ],
+        [
+            'name' => 'Biblioteca Malatestiana',
+            'description' => 'Piazza Bufalini - Library',
+            'lat' => 44.1388,
+            'lng' => 12.2435
         ]
     ];
 
@@ -240,6 +267,23 @@ if ($shouldRun && $schemaReady) {
         if (mysqli_stmt_execute($insertVehicleStmt)) {
             $report['vehicles_added']++;
         }
+    }
+
+    $selectHubStmt = mysqli_prepare($conn, "SELECT id FROM hubs WHERE name = ?");
+    $insertHubStmt = mysqli_prepare($conn, "INSERT INTO hubs (name, description, lat, lng) VALUES (?, ?, ?, ?)");
+
+    foreach ($hubs as $hub) {
+        mysqli_stmt_bind_param($selectHubStmt, "s", $hub['name']);
+        mysqli_stmt_execute($selectHubStmt);
+        $result = mysqli_stmt_get_result($selectHubStmt);
+        $exists = $result ? mysqli_fetch_assoc($result) : null;
+
+        if ($exists) {
+            continue;
+        }
+
+        mysqli_stmt_bind_param($insertHubStmt, "ssdd", $hub['name'], $hub['description'], $hub['lat'], $hub['lng']);
+        mysqli_stmt_execute($insertHubStmt);
     }
 
     mysqli_stmt_close($selectVehicleStmt);
