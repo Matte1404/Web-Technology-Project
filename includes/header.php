@@ -7,7 +7,7 @@ $isAdmin = isset($_SESSION['user_role']) && strtolower((string) $_SESSION['user_
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
