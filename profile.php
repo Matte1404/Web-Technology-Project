@@ -22,6 +22,7 @@ $transactionsError = null;
 $issueReports = [];
 $issueReportsError = null;
 $adminIssueErrors = [];
+$accountErrors = [];
 
 function format_minutes(int $minutes): string
 {
@@ -125,6 +126,102 @@ if (!$isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '
             }
             $issueErrors[] = 'Issue report failed.';
         }
+    }
+}
+
+if (!$isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_account') {
+    $password = $_POST['password'] ?? '';
+    $confirmation = trim($_POST['confirm'] ?? '');
+
+    if ($password === '') {
+        $accountErrors[] = 'Enter your password.';
+    }
+    if ($confirmation !== 'DELETE') {
+        $accountErrors[] = 'Type DELETE to confirm.';
+    }
+
+    if (!$accountErrors) {
+        $stmt = mysqli_prepare($conn, "SELECT password_hash FROM users WHERE id = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $userId);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $row = $result ? mysqli_fetch_assoc($result) : null;
+            mysqli_stmt_close($stmt);
+        } else {
+            $row = null;
+        }
+
+        if (!$row || !password_verify($password, $row['password_hash'])) {
+            $accountErrors[] = 'Password confirmation failed.';
+        }
+    }
+
+    if (!$accountErrors) {
+        mysqli_begin_transaction($conn);
+        $deleteOk = true;
+        $errorText = '';
+
+        $stmt = mysqli_prepare($conn, "DELETE FROM issues WHERE user_id = ?");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $userId);
+            $deleteOk = mysqli_stmt_execute($stmt);
+            $errorText = mysqli_stmt_error($stmt);
+            mysqli_stmt_close($stmt);
+        } else {
+            $deleteOk = false;
+            $errorText = mysqli_error($conn);
+        }
+
+        if ($deleteOk) {
+            $stmt = mysqli_prepare($conn, "DELETE FROM rentals WHERE user_id = ?");
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "i", $userId);
+                $deleteOk = mysqli_stmt_execute($stmt);
+                $errorText = mysqli_stmt_error($stmt);
+                mysqli_stmt_close($stmt);
+            } else {
+                $deleteOk = false;
+                $errorText = mysqli_error($conn);
+            }
+        }
+
+        if ($deleteOk) {
+            $stmt = mysqli_prepare($conn, "DELETE FROM transactions WHERE user_id = ?");
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "i", $userId);
+                $deleteOk = mysqli_stmt_execute($stmt);
+                $errorText = mysqli_stmt_error($stmt);
+                mysqli_stmt_close($stmt);
+            } else {
+                $deleteOk = false;
+                $errorText = mysqli_error($conn);
+            }
+        }
+
+        if ($deleteOk) {
+            $stmt = mysqli_prepare($conn, "DELETE FROM users WHERE id = ?");
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "i", $userId);
+                $deleteOk = mysqli_stmt_execute($stmt);
+                $errorText = mysqli_stmt_error($stmt);
+                mysqli_stmt_close($stmt);
+            } else {
+                $deleteOk = false;
+                $errorText = mysqli_error($conn);
+            }
+        }
+
+        if ($deleteOk) {
+            mysqli_commit($conn);
+            $_SESSION = [];
+            session_destroy();
+            header('Location: index.php');
+            exit;
+        }
+
+        mysqli_rollback($conn);
+        $accountErrors[] = 'Account deletion failed: ' . $errorText;
     }
 }
 
@@ -482,6 +579,32 @@ include 'includes/header.php';
                         </table>
                     </div>
                 <?php endif; ?>
+            </div>
+
+            <div class="bg-white rounded-4 shadow-sm p-4 mt-4" id="delete-account">
+                <h5 class="fw-bold mb-2">Delete account</h5>
+                <p class="text-muted small">This permanently removes your profile, rentals, transactions, and issue reports.</p>
+
+                <?php if ($accountErrors): ?>
+                    <div class="alert alert-danger">
+                        <?php foreach ($accountErrors as $error): ?>
+                            <div><?php echo htmlspecialchars($error); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" onsubmit="return confirm('Delete your account permanently?');">
+                    <input type="hidden" name="action" value="delete_account">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" for="delete-password">Confirm password</label>
+                        <input type="password" id="delete-password" name="password" class="form-control" autocomplete="current-password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" for="delete-confirm">Type DELETE to confirm</label>
+                        <input type="text" id="delete-confirm" name="confirm" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger">Delete my account</button>
+                </form>
             </div>
         <?php endif; ?>
     </div>
