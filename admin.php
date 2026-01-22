@@ -198,64 +198,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $name = trim($_POST['name'] ?? '');
-    $type = $_POST['type'] ?? '';
-    $status = $_POST['status'] ?? '';
-    $location = trim($_POST['location'] ?? '');
-    $battery = (int) ($_POST['battery'] ?? 0);
-    $hourlyPrice = (float) ($_POST['hourly_price'] ?? 0);
-    
-    $useCustomImage = isset($_POST['use_custom_image']);
-    $customImageUrl = trim($_POST['image_url'] ?? '');
+    if (in_array($action, ['create', 'update'])) {
+        $name = trim($_POST['name'] ?? '');
+        $type = $_POST['type'] ?? '';
+        $status = $_POST['status'] ?? '';
+        $location = trim($_POST['location'] ?? '');
+        $battery = (int) ($_POST['battery'] ?? 0);
+        $hourlyPrice = (float) ($_POST['hourly_price'] ?? 0);
+        
+        $useCustomImage = isset($_POST['use_custom_image']);
+        $customImageUrl = trim($_POST['image_url'] ?? '');
 
-    if ($useCustomImage) {
-        $imageUrl = $customImageUrl === '' ? null : $customImageUrl;
-    } else {
-        $imageUrl = $defaultImages[$type] ?? null;
-    }
-
-    if ($name === '') {
-        $errors[] = 'Name is required.';
-    }
-    if (!in_array($type, $allowedTypes, true)) {
-        $errors[] = 'Invalid type.';
-    }
-    if (!in_array($status, $allowedStatuses, true)) {
-        $errors[] = 'Invalid status.';
-    }
-    if ($location === '') {
-        $errors[] = 'Location is required.';
-    }
-    if ($battery < 0 || $battery > 100) {
-        $errors[] = 'Battery must be between 0 and 100.';
-    }
-    if ($hourlyPrice <= 0) {
-        $errors[] = 'Invalid hourly price.';
-    }
-
-    if (!$errors) {
-        if ($action === 'create') {
-            $stmt = mysqli_prepare($conn, "INSERT INTO vehicles (name, type, status, location, battery, hourly_price, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            mysqli_stmt_bind_param($stmt, "ssssids", $name, $type, $status, $location, $battery, $hourlyPrice, $imageUrl);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-            $newId = mysqli_insert_id($conn);
-            log_change($conn, $_SESSION['user_id'], 'create', 'vehicle', $newId, "Created vehicle {$name}.");
-            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Vehicle created.'];
-            header('Location: admin.php');
-            exit;
+        if ($useCustomImage) {
+            $imageUrl = $customImageUrl === '' ? null : $customImageUrl;
+        } else {
+            $imageUrl = $defaultImages[$type] ?? null;
         }
-        if ($action === 'update') {
-            $id = (int) ($_POST['id'] ?? 0);
-            $stmt = mysqli_prepare($conn, "UPDATE vehicles SET name = ?, type = ?, status = ?, location = ?, battery = ?, hourly_price = ?, image_url = ? WHERE id = ?");
-            mysqli_stmt_bind_param($stmt, "ssssidsi", $name, $type, $status, $location, $battery, $hourlyPrice, $imageUrl, $id);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-            $statusLabel = status_label($status);
-            log_change($conn, $_SESSION['user_id'], 'update', 'vehicle', $id, "Updated vehicle {$name} (status: {$statusLabel}).");
-            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Vehicle updated.'];
-            header('Location: admin.php');
-            exit;
+
+        if ($name === '') {
+            $errors[] = 'Name is required.';
+        }
+        if (!in_array($type, $allowedTypes, true)) {
+            $errors[] = 'Invalid type.';
+        }
+        if (!in_array($status, $allowedStatuses, true)) {
+            $errors[] = 'Invalid status.';
+        }
+        if ($location === '') {
+            $errors[] = 'Location is required.';
+        }
+        if ($battery < 0 || $battery > 100) {
+            $errors[] = 'Battery must be between 0 and 100.';
+        }
+        if ($hourlyPrice <= 0) {
+            $errors[] = 'Invalid hourly price.';
+        }
+
+        if (!$errors) {
+            if ($action === 'create') {
+                $stmt = mysqli_prepare($conn, "INSERT INTO vehicles (name, type, status, location, battery, hourly_price, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                mysqli_stmt_bind_param($stmt, "ssssids", $name, $type, $status, $location, $battery, $hourlyPrice, $imageUrl);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_close($stmt);
+                $newId = mysqli_insert_id($conn);
+                log_change($conn, $_SESSION['user_id'], 'create', 'vehicle', $newId, "Created vehicle {$name}.");
+                $_SESSION['flash'] = ['type' => 'success', 'message' => 'Vehicle created.'];
+                header('Location: admin.php');
+                exit;
+            }
+            if ($action === 'update') {
+                $id = (int) ($_POST['id'] ?? 0);
+                $stmt = mysqli_prepare($conn, "UPDATE vehicles SET name = ?, type = ?, status = ?, location = ?, battery = ?, hourly_price = ?, image_url = ? WHERE id = ?");
+                mysqli_stmt_bind_param($stmt, "ssssidsi", $name, $type, $status, $location, $battery, $hourlyPrice, $imageUrl, $id);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_close($stmt);
+                $statusLabel = status_label($status);
+                log_change($conn, $_SESSION['user_id'], 'update', 'vehicle', $id, "Updated vehicle {$name} (status: {$statusLabel}).");
+                $_SESSION['flash'] = ['type' => 'success', 'message' => 'Vehicle updated.'];
+                header('Location: admin.php');
+                exit;
+            }
         }
     }
 }
