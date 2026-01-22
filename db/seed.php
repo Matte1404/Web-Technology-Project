@@ -337,6 +337,8 @@ if ($shouldRun && $schemaReady) {
     mysqli_stmt_close($insertRentalStmt);
 
     $alerts[] = ['type' => 'success', 'message' => 'Seed completed.'];
+    header("Location: ../index.php");
+    exit;
 } elseif ($shouldRun && !$schemaReady) {
     $alerts[] = ['type' => 'danger', 'message' => 'Seed cannot run without tables. Import db/schema.sql or reopen db/seed.php?run=1.'];
 }
