@@ -14,7 +14,8 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(120) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password CHAR(128) NOT NULL,
+    salt CHAR(128) NOT NULL,
     role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
     credit DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

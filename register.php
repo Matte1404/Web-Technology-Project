@@ -38,9 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($exists) {
             $errors[] = 'Email already registered.';
         } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'user')");
-            mysqli_stmt_bind_param($stmt, "sss", $name, $email, $hash);
+            $salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
+            $password = hash('sha512', $password . $salt);
+            $stmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password, salt, role) VALUES (?, ?, ?, ?, 'user')");
+            mysqli_stmt_bind_param($stmt, "ssss", $name, $email, $password, $salt);
             $success = mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
 

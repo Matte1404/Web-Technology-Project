@@ -86,11 +86,44 @@ if (!$schemaReady) {
 }
 
 if ($shouldRun && $schemaReady) {
+    // Helper to get hash and salt
+    function get_auth_data($password) {
+        $salt = hash('sha512', uniqid(mt_rand(1, mt_getrandmax()), true));
+        $password = hash('sha512', $password . $salt);
+        return ['password' => $password, 'salt' => $salt];
+    }
+
+    $adminAuth = get_auth_data('admin123');
+    $userAuth = get_auth_data('student123');
+
     $users = [
-        ['name' => 'Admin User', 'email' => 'admin@unibo.it', 'password' => 'admin123', 'role' => 'admin', 'credit' => 100.00],
-        ['name' => 'Alex Taylor', 'email' => 'alex.taylor@students.unibo.it', 'password' => 'student123', 'role' => 'user', 'credit' => 50.00],
-        ['name' => 'Maya Lee', 'email' => 'maya.lee@students.unibo.it', 'password' => 'student123', 'role' => 'user', 'credit' => 0.00]
+        [
+            'name' => 'Admin User',
+            'email' => 'admin@unibo.it',
+            'password' => $adminAuth['password'], 
+            'salt' => $adminAuth['salt'],
+            'role' => 'admin',
+            'credit' => 100.00
+        ],
+        [
+            'name' => 'Alex Taylor',
+            'email' => 'alex.taylor@students.unibo.it',
+            'password' => $userAuth['password'],
+            'salt' => $userAuth['salt'],
+            'role' => 'user',
+            'credit' => 50.00
+        ],
+        [
+            'name' => 'Maya Lee',
+            'email' => 'maya.lee@students.unibo.it',
+            'password' => $userAuth['password'],
+            'salt' => $userAuth['salt'],
+            'role' => 'user',
+            'credit' => 0.00
+        ]
     ];
+
+
 
     $vehicles = [
         [
@@ -156,7 +189,7 @@ if ($shouldRun && $schemaReady) {
     ];
 
     $selectUserStmt = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ?");
-    $insertUserStmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password_hash, role, credit) VALUES (?, ?, ?, ?, ?)");
+    $insertUserStmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password, salt, role, credit) VALUES (?, ?, ?, ?, ?, ?)");
 
     foreach ($users as $user) {
         mysqli_stmt_bind_param($selectUserStmt, "s", $user['email']);
@@ -169,9 +202,7 @@ if ($shouldRun && $schemaReady) {
             continue;
         }
 
-        $hash = password_hash($user['password'], PASSWORD_DEFAULT);
-        $credit = $user['credit'] ?? 0.00;
-        mysqli_stmt_bind_param($insertUserStmt, "ssssd", $user['name'], $user['email'], $hash, $user['role'], $credit);
+        mysqli_stmt_bind_param($insertUserStmt, "sssssd", $user['name'], $user['email'], $user['password'], $user['salt'], $user['role'], $user['credit']);
         if (mysqli_stmt_execute($insertUserStmt)) {
             $report['users_added']++;
         }
@@ -267,7 +298,7 @@ if ($shouldRun && $schemaReady) {
 
 include '../includes/header.php';
 ?>
-
+<main>
 <div class="container py-5" style="max-width: 720px;">
     <h1 class="fw-bold mb-3">Demo Data Seed</h1>
     <p class="text-muted">Script to insert sample data into the local database.</p>
@@ -282,7 +313,7 @@ include '../includes/header.php';
 
     <?php if (!$shouldRun): ?>
         <div class="form-section p-4 shadow-sm">
-            <h5 class="fw-bold mb-3">Demo credentials</h5>
+            <h2 class="fw-bold mb-3">Demo credentials</h2>
             <ul class="mb-4">
                 <li>Admin: admin@unibo.it / admin123</li>
                 <li>Student: alex.taylor@students.unibo.it / student123</li>
@@ -292,7 +323,7 @@ include '../includes/header.php';
         </div>
     <?php else: ?>
         <div class="form-section p-4 shadow-sm">
-            <h5 class="fw-bold mb-3">Result</h5>
+            <h2 class="fw-bold mb-3">Result</h2>
             <ul class="mb-0">
                 <li>Users added: <?php echo (int) $report['users_added']; ?></li>
                 <li>Users already present: <?php echo (int) $report['users_skipped']; ?></li>
@@ -305,5 +336,5 @@ include '../includes/header.php';
         </div>
     <?php endif; ?>
 </div>
-
+</main>
 <?php include '../includes/footer.php'; ?>

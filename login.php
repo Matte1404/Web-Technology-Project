@@ -33,14 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $stmt = mysqli_prepare($conn, "SELECT id, name, password_hash, role FROM users WHERE email = ?");
+        $stmt = mysqli_prepare($conn, "SELECT id, name, password, salt, role FROM users WHERE email = ?");
         mysqli_stmt_bind_param($stmt, "s", $email);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $user = $result ? mysqli_fetch_assoc($result) : null;
         mysqli_stmt_close($stmt);
 
-        if ($user && password_verify($password, $user['password_hash'])) {
+        if ($user) {
+            $check_password = hash('sha512', $password . $user['salt']);
+            if ($check_password === $user['password']) {
             $role = strtolower(trim((string) $user['role']));
             if ($role !== 'admin') {
                 $role = 'user';
