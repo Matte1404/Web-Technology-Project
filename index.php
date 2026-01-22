@@ -86,10 +86,12 @@ if ($stmt) {
 include 'includes/header.php';
 ?>
 
-    <section class="py-5 text-white" style="background-color: #8B1E1E; background: linear-gradient(135deg, #BB2E29 0%, #8B1E1E 100%);" id="main-content">
+<main>
+
+    <section class="py-5 text-white" style="background-color: #8B1E1E;" id="main-content">
         <div class="container text-center py-4">
             <h1 class="display-5 fw-bold mb-3">Find Your Ride</h1>
-            <p class="lead text-dark">Sustainable campus transportation made easy</p>
+            <p class="fs-2 text-white">Sustainable campus transportation made easy</p>
 
             <div class="bg-white p-4 rounded-4 shadow-lg text-dark mx-auto mt-5" style="max-width: 520px;">
                 <form class="row g-3" method="get" id="filters">
@@ -207,6 +209,7 @@ include 'includes/header.php';
             </div>
         </div>
     </section>
+</main>
 
 <script>
 (function () {

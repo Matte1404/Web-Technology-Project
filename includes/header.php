@@ -7,7 +7,7 @@ $isAdmin = isset($_SESSION['user_role']) && strtolower((string) $_SESSION['user_
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
                     <a href="wallet.php" class="btn btn-outline-secondary btn-sm">Wallet</a>
                     <a href="roulette.php" class="btn btn-unibo btn-sm"><i class="fas fa-gamepad me-1"></i>Roulette</a>
                 <?php endif; ?>
-                <a href="profile.php" class="btn btn-light rounded-circle"><i class="fas fa-user"></i></a>
+                <a href="profile.php" class="btn btn-light rounded-circle fas fa-user" aria-label="Profile"></a>
                 <?php if ($isAdmin): ?>
                     <a href="admin.php" class="btn btn-unibo btn-sm">Admin Panel</a>
                 <?php endif; ?>

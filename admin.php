@@ -328,7 +328,7 @@ include 'includes/header.php';
     <div class="container py-5" id="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold">Fleet Management</h2>
-            <a class="btn btn-unibo" href="#vehicle-form"><i class="fas fa-plus me-2"></i>Add Vehicle</a>
+            <a class="btn btn-unibo fas fa-plus me-2" href="#vehicle-form" aria-label="Add vehicle"> Add Vehicle</a>
         </div>
 
         <?php if ($flash): ?>
@@ -337,8 +337,8 @@ include 'includes/header.php';
             </div>
         <?php endif; ?>
 
-        <div class="form-section p-4 shadow-sm mb-4" id="vehicle-form">
-            <h5 class="fw-bold mb-3"><?php echo $formMode === 'update' ? 'Edit Vehicle' : 'New Vehicle'; ?></h5>
+        <div class="form-section p-4 shadow-sm mb-4" id="vehicle-form" >
+            <h3 class="h5 fw-bold mb-3" aria-label="Edit or add vehicle"><?php echo $formMode === 'update' ? 'Edit Vehicle' : 'New Vehicle'; ?></h3>
 
             <?php if ($errors): ?>
                 <div class="alert alert-danger">
@@ -355,36 +355,42 @@ include 'includes/header.php';
                 <?php endif; ?>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Name</label>
-                        <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($formData['name']); ?>" required>
+                        <label for="name" class="form-label fw-bold">Name </label>
+                        <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($formData['name']); ?>" required>
+                        
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Type</label>
-                        <select name="type" class="form-select">
+                        <label for="type" class="form-label fw-bold">Type</label>
+                        <select name="type" id="type" class="form-select">
                             <option value="bike" <?php echo $formData['type'] === 'bike' ? 'selected' : ''; ?>>Bike</option>
                             <option value="scooter" <?php echo $formData['type'] === 'scooter' ? 'selected' : ''; ?>>Scooter</option>
                         </select>
+                        
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Status</label>
-                        <select name="status" class="form-select">
+                        <label for="status" class="form-label fw-bold">Status</label>
+                        <select name="status" id="status" class="form-select">
                             <option value="available" <?php echo $formData['status'] === 'available' ? 'selected' : ''; ?>>Available</option>
                             <option value="rented" <?php echo $formData['status'] === 'rented' ? 'selected' : ''; ?>>Rented</option>
                             <option value="maintenance" <?php echo $formData['status'] === 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
                             <option value="broken" <?php echo $formData['status'] === 'broken' ? 'selected' : ''; ?>>Broken</option>
                         </select>
+                        
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Location</label>
-                        <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($formData['location']); ?>" required>
+                        <label for="location" class="form-label fw-bold">Location </label>
+                        <input type="text" name="location" id="location" class="form-control" value="<?php echo htmlspecialchars($formData['location']); ?>" required>
+                        
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Battery (%)</label>
-                        <input type="number" min="0" max="100" name="battery" class="form-control" value="<?php echo htmlspecialchars((string) $formData['battery']); ?>" required>
+                        <label for="battery" class="form-label fw-bold">Battery (%)</label>
+                        <input type="number" min="0" max="100" name="battery" id="battery" class="form-control" value="<?php echo htmlspecialchars((string) $formData['battery']); ?>" required>
+                        
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">Price per hour (EUR)</label>
-                        <input type="number" step="0.01" name="hourly_price" class="form-control" value="<?php echo htmlspecialchars((string) $formData['hourly_price']); ?>" required>
+                        <label for="hourly_price" class="form-label fw-bold">Price per hour (EUR)</label>
+                        <input type="number" step="0.01" name="hourly_price" id="hourly_price" class="form-control" value="<?php echo htmlspecialchars((string) $formData['hourly_price']); ?>" required>
+                        
                     </div>
                     <div class="col-md-12">
                         <?php
@@ -402,8 +408,9 @@ include 'includes/header.php';
                             </label>
                         </div>
                         <div id="image_url_container" style="<?php echo $useCustomChecked ? '' : 'display: none;'; ?>">
-                            <label class="form-label fw-bold">Image (URL)</label>
+                            <label for="image_url" class="form-label fw-bold">Image (URL)</label>
                             <input type="text" name="image_url" id="image_url" class="form-control" value="<?php echo htmlspecialchars((string) $formData['image_url']); ?>">
+                            
                         </div>
                     </div>
                 </div>
@@ -433,7 +440,7 @@ include 'includes/header.php';
 
         <div class="bg-white shadow-sm rounded-4 overflow-hidden mx-auto" style="max-width: 980px;">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
-                <h6 class="fw-bold mb-0">Vehicle list</h6>
+                <h3 class="h6 fw-bold mb-0">Vehicle list</h3>
                 <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
                     <form method="get" class="d-flex flex-wrap align-items-center gap-2">
                         <label class="small text-muted" for="status-filter">Status</label>
@@ -479,7 +486,7 @@ include 'includes/header.php';
                             </div>
                             <div class="d-flex flex-wrap gap-2 mt-3">
                                 <a href="admin.php?edit=<?php echo $row['id']; ?>#vehicle-form" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                                <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')" aria-label="Delete vehicle">Delete</a>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -513,8 +520,8 @@ include 'includes/header.php';
                                 <td>EUR <?php echo htmlspecialchars((string) $row['hourly_price']); ?></td>
                                 <td class="text-end px-4">
                                     <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
-                                        <a href="admin.php?edit=<?php echo $row['id']; ?>#vehicle-form" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                                        <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                                        <a href="admin.php?edit=<?php echo $row['id']; ?>#vehicle-form" class="btn btn-sm btn-outline-primary fas fa-edit" aria-label="Edit vehicle"></a>
+                                        <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger fas fa-trash" onclick="return confirm('Are you sure?')" aria-label="Delete vehicle"></a>
                                     </div>
                                 </td>
                             </tr>
