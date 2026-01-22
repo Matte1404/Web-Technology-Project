@@ -225,10 +225,43 @@ include 'includes/header.php';
         <div class="col-lg-5">
             <div class="form-section p-4 shadow-sm h-100">
                 <h2 class="h5 fw-bold mb-3">Pickup point</h2>
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+                
+                <style>
+                    #map { height: 400px; width: 100%; }
+                </style>    
+
                 <div class="rounded-4 overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1619468129361-605ebea04b44?w=800" class="img-fluid" alt="Map">
+                    <div id="map"></div>
                 </div>
-                <p class="text-muted small mt-3 mb-0">Static map to highlight the main pickup area.</p>
+                <p class="text-muted small mt-3 mb-0">Interactive map showing available hubs and pickup zones.</p>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Bologna coordinates
+                        var map = L.map('map').setView([44.4949, 11.3426], 13);
+
+                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        }).addTo(map);
+
+                        // Define Hub Locations (Hot Points)
+                        var hubs = [
+                            { lat: 44.4942, lng: 11.3465, name: "Piazza Maggiore Hub" },
+                            { lat: 44.4969, lng: 11.3564, name: "University District - Via Zamboni" },
+                            { lat: 44.5005, lng: 11.3338, name: "Train Station Hub" },
+                            { lat: 44.4891, lng: 11.3413, name: "Engineering Campus - Saragozza" }
+                        ];
+
+                        hubs.forEach(function(hub) {
+                            L.marker([hub.lat, hub.lng]).addTo(map)
+                                .bindPopup('<b>' + hub.name + '</b><br>Pickup/Drop-off Point')
+                                .openPopup();
+                        });
+                    });
+                </script>
             </div>
         </div>
     </div>

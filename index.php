@@ -110,6 +110,8 @@ include 'includes/header.php';
         </div>
     </section>
 
+
+
     <section class="py-5">
         <div class="container">
             <h2 class="fw-bold mb-4">Vehicles</h2>
@@ -188,23 +190,58 @@ include 'includes/header.php';
         <div class="container">
             <h2 class="fw-bold mb-4 text-center">Nearby Pick-up Points</h2>
             <div class="row align-items-center">
-                <div class="col-md-6 mb-4 mb-md-0">
-                    <div class="rounded-4 overflow-hidden shadow">
-                        <img src="https://images.unsplash.com/photo-1619468129361-605ebea04b44?w=800" class="img-fluid" alt="Map">
+                <!-- List (Left) -->
+                <div class="col-md-6 px-lg-5 mb-4 mb-md-0 order-2 order-md-1">
+                    <div class="list-group list-group-flush bg-transparent" id="hub-list">
+                        <!-- JS populated -->
                     </div>
                 </div>
-                <div class="col-md-6 px-lg-5">
-                    <div class="list-group list-group-flush bg-transparent">
-                        <div class="list-group-item bg-transparent border-0 px-0 mb-3">
-                            <div class="d-flex gap-3 align-items-center">
-                                <div class="bg-white p-3 rounded-circle shadow-sm text-danger"><span class="fas fa-map-pin"></span></div>
-                                <div>
-                                    <h3 class="h6 fw-bold mb-0">Main Campus</h3>
-                                    <small class="text-muted">Main Campus Gate</small>
-                                </div>
-                            </div>
-                        </div>
+                
+                <!-- Map (Right) -->
+                <div class="col-md-6 order-1 order-md-2">
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+                    <style> #home-map { height: 400px; width: 100%; border-radius: 12px; } .hub-item { cursor: pointer; transition: background 0.2s; } .hub-item:hover { background: rgba(255,255,255,0.5); } </style>
+                    <div class="rounded-4 overflow-hidden shadow">
+                        <div id="home-map"></div>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var map = L.map('home-map').setView([44.4949, 11.3426], 13);
+                            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+                            
+                            var hubs = [
+                                { lat: 44.4942, lng: 11.3465, name: "Piazza Maggiore Hub", desc: "City Center" },
+                                { lat: 44.4969, lng: 11.3564, name: "Via Zamboni", desc: "University District" },
+                                { lat: 44.5005, lng: 11.3338, name: "Train Station", desc: "Central Station" },
+                                { lat: 44.4891, lng: 11.3413, name: "Engineering Campus", desc: "Viale Risorgimento" }
+                            ];
+
+                            var listContainer = document.getElementById('hub-list');
+
+                            hubs.forEach(function(h) {
+                                // Add Marker
+                                L.marker([h.lat, h.lng]).addTo(map).bindPopup('<b>' + h.name + '</b><br>' + h.desc);
+
+                                // Add List Item
+                                var item = document.createElement('div');
+                                item.className = 'list-group-item bg-transparent border-0 px-0 mb-3 hub-item';
+                                item.innerHTML = `
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <div class="bg-white p-3 rounded-circle shadow-sm text-danger"><span class="fas fa-map-pin"></span></div>
+                                        <div>
+                                            <h3 class="h6 fw-bold mb-0">${h.name}</h3>
+                                            <small class="text-muted">${h.desc}</small>
+                                        </div>
+                                    </div>
+                                `;
+                                item.addEventListener('click', function() {
+                                    map.flyTo([h.lat, h.lng], 16);
+                                });
+                                listContainer.appendChild(item);
+                            });
+                        });
+                    </script>
                 </div>
             </div>
         </div>

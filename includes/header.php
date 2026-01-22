@@ -36,7 +36,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 <a href="#main-content" class="skip-link">Skip to main content</a>
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="../index.php">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
             <div class="bg-unibo text-white rounded-2 d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px;">U</div>
             <span style="color: #2D2D2D;">Unibo Mobility</span>
         </a>
