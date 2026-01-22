@@ -324,7 +324,7 @@ if ($listStmt) {
 
 include 'includes/header.php';
 ?>
-
+<main>
     <div class="container py-5" id="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold">Fleet Management</h2>
@@ -536,5 +536,5 @@ include 'includes/header.php';
             </div>
         </div>
     </div>
-
+</main>
 <?php include 'includes/footer.php'; ?>
