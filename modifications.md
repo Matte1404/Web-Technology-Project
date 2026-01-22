@@ -35,5 +35,5 @@ Updated
 - `topup.php`: renamed to `wallet.php`.
 - `wallet.php`: added quick amount buttons and a removable card autofill button.
 - `wallet.php`: logs wallet credits in the transactions history.
-- `profile.php`: added user-facing transactions list.
+- `profile.php`: added user-facing transactions list, admin issue management UI, and self-service account deletion.
 - `db/seed.php`: includes `transactions` in required tables.
