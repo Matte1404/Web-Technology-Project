@@ -119,6 +119,7 @@ if ($shouldRun && $schemaReady) {
             'password' => $userAuth['password'],
             'salt' => $userAuth['salt'],
             'role' => 'user',
+            'status' => 'active',
             'credit' => 0.00
         ]
     ];
@@ -189,7 +190,7 @@ if ($shouldRun && $schemaReady) {
     ];
 
     $selectUserStmt = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ?");
-    $insertUserStmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password, salt, role, credit) VALUES (?, ?, ?, ?, ?, ?)");
+    $insertUserStmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password, salt, role, status, credit) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
     foreach ($users as $user) {
         mysqli_stmt_bind_param($selectUserStmt, "s", $user['email']);
@@ -202,7 +203,8 @@ if ($shouldRun && $schemaReady) {
             continue;
         }
 
-        mysqli_stmt_bind_param($insertUserStmt, "sssssd", $user['name'], $user['email'], $user['password'], $user['salt'], $user['role'], $user['credit']);
+        $status = $user['status'] ?? 'active';
+        mysqli_stmt_bind_param($insertUserStmt, "ssssssd", $user['name'], $user['email'], $user['password'], $user['salt'], $user['role'], $status, $user['credit']);
         if (mysqli_stmt_execute($insertUserStmt)) {
             $report['users_added']++;
         }

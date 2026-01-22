@@ -17,6 +17,7 @@ CREATE TABLE users (
     password CHAR(128) NOT NULL,
     salt CHAR(128) NOT NULL,
     role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+    status ENUM('active', 'blocked') NOT NULL DEFAULT 'active',
     credit DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $stmt = mysqli_prepare($conn, "SELECT id, name, password, salt, role FROM users WHERE email = ?");
+        $stmt = mysqli_prepare($conn, "SELECT id, name, password, salt, role, status FROM users WHERE email = ?");
         mysqli_stmt_bind_param($stmt, "s", $email);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
@@ -43,7 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user) {
             $check_password = hash('sha512', $password . $user['salt']);
             if ($check_password === $user['password']) {
-            $role = strtolower(trim((string) $user['role']));
+                if (($user['status'] ?? 'active') === 'blocked') {
+                    $errors[] = 'Your account has been blocked.';
+                } else {
+                    $role = strtolower(trim((string) $user['role']));
             if ($role !== 'admin') {
                 $role = 'user';
             }
@@ -58,9 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             header("Location: {$redirect}");
             exit;
+            }
         }
-        $errors[] = 'Invalid credentials.';
     }
+    $errors[] = 'Invalid credentials.';
+}
 }
 
 include 'includes/header.php';
